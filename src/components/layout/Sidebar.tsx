@@ -2,6 +2,7 @@
 
 import { STOCK_TABS, type TabId } from "@/lib/stock";
 
+
 type SidebarProps = {
   activeTab: TabId;
   onSelectTab: (tab: TabId) => void;
@@ -24,7 +25,15 @@ export function Sidebar({ activeTab, onSelectTab }: SidebarProps) {
             }`}
           >
               <span aria-hidden="true">
-                {typeof item.icon === "string" ? item.icon : <item.icon className="h-4 w-4" />}
+                {typeof item.icon === "string" ? (
+                  item.icon
+                ) : item.icon ? (
+                  // cast to ElementType to satisfy JSX element requirements
+                  (() => {
+                    const Icon = item.icon as unknown as React.ElementType;
+                    return <Icon className="h-4 w-4" />;
+                  })()
+                ) : null}
               </span>
             <span>{item.label}</span>
           </button>
