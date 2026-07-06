@@ -20,6 +20,15 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Supabase setup
+
+1. Create a Supabase project and open the SQL editor.
+2. Create two tables:
+   - `stock_records(id text primary key, productName text, category text, sourceCountry text, purchaseDate text, saleDate text, buyPriceEUR text, euroRate text, salePriceMAD text, notes text, imei text, status text)`
+   - `euro_purchases(id text primary key, purchaseDate text, euroAmount text, euroPriceMAD text, notes text)`
+3. Copy the project URL and anon key into `.env.local` using `.env.example` as the template.
+4. Start the app and sign in with your Supabase owner account to enable editing. Your brother can still open the app in read-only mode.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
