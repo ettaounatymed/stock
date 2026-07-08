@@ -10,9 +10,10 @@ type SoldProductsProps = {
   canEdit: boolean;
   onEdit: (item: ProductRecord) => void;
   onDelete: (id: string) => void;
+  pageSize?: number;
 };
 
-export function SoldProducts({ items, averageEuroRate, canEdit, onEdit, onDelete }: SoldProductsProps) {
+export function SoldProducts({ items, averageEuroRate, canEdit, onEdit, onDelete, pageSize }: SoldProductsProps) {
   return (
     <ProductList
       items={items}
@@ -28,6 +29,7 @@ export function SoldProducts({ items, averageEuroRate, canEdit, onEdit, onDelete
         />
       )}
       layout="stack"
+      pageSize={pageSize}
     />
   );
 }

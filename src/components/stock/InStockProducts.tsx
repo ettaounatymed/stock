@@ -10,9 +10,10 @@ type InStockProductsProps = {
   canEdit: boolean;
   onEdit: (item: ProductRecord) => void;
   onDelete: (id: string) => void;
+  pageSize?: number;
 };
 
-export function InStockProducts({ items, averageEuroRate, canEdit, onEdit, onDelete }: InStockProductsProps) {
+export function InStockProducts({ items, averageEuroRate, canEdit, onEdit, onDelete, pageSize }: InStockProductsProps) {
   return (
     <ProductList
       items={items}
@@ -28,6 +29,7 @@ export function InStockProducts({ items, averageEuroRate, canEdit, onEdit, onDel
         />
       )}
       layout="stack"
+      pageSize={pageSize}
     />
   );
 }

@@ -485,7 +485,7 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#1f2937_100%)] text-white">
-      <section className="mx-auto flex w-full max-w-7xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
+      <section className="mx-auto flex w-full max-w-10xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
         
         <Header signOut={handleOwnerSignOut} />
         
@@ -557,6 +557,7 @@ export default function Home() {
                 <ProductList
                   items={filteredRecords}
                   emptyMessage="No products found."
+                  pageSize={4}
                   renderItem={(item) => (
                     <ProductCard key={item.id} item={item} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} />
                   )}
@@ -568,9 +569,9 @@ export default function Home() {
               <article className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
                 <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">In Stock</p>
                 <h2 className="mt-2 text-xl font-semibold text-white">Available products</h2>
-                <p className="mt-2 text-sm text-slate-200/90">Only products still available are shown here.</p>
+                <ProductFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} visibleCount={inStockRecords.length} totalCount={records.length} />
                 <div className="mt-5 space-y-3">
-                  <InStockProducts items={inStockRecords} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} />
+                  <InStockProducts items={inStockRecords} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} pageSize={4} />
                 </div>
               </article>
             )}
@@ -578,13 +579,14 @@ export default function Home() {
             {activeTab === "sold" && (
               <article className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
                 <h2 className="mt-2 text-xl font-semibold text-white">Sold products</h2>
+                <ProductFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} visibleCount={soldRecords.length} totalCount={records.length} />
                 <div className="mt-5 space-y-3">
-                  <SoldProducts items={soldRecords} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} />
+                  <SoldProducts items={soldRecords} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} pageSize={4} />
                 </div>
               </article>
             )}
 
-            {activeTab === "statistics" && <StatisticsPage summary={summary} />}
+            {activeTab === "statistics" && <StatisticsPage summary={summary} onSelectTab={setActiveTab} />}
 
             {activeTab === "export" && <ExportPanel onExport={exportCsv} disabled={records.length === 0} totalCount={records.length} />}
           </div>

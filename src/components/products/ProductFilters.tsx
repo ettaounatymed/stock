@@ -11,7 +11,6 @@ export function ProductFilters({ searchTerm, onSearchChange, visibleCount, total
   return (
     <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
       <label className="block flex-1 text-sm text-slate-100">
-        <span className="flex items-center gap-2">🔎 Search products</span>
         <input
           value={searchTerm}
           onChange={(event) => onSearchChange(event.target.value)}
