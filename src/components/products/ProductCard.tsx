@@ -18,8 +18,8 @@ export function ProductCard({ item, averageEuroRate, canEdit, onEdit, onDelete }
   const status = getProductStatus(item);
 
   return (
-    <article className="rounded-3xl border border-white/10 bg-slate-950/65 p-4 shadow-lg shadow-black/20">
-      <div className="flex flex-col gap-3 border-b border-white/10 pb-3 md:flex-row md:items-start md:justify-between">
+    <article className="rounded-3xl border border-white/10 bg-slate-950/65 p-3 shadow-lg shadow-black/20 sm:p-4">
+      <div className="flex flex-col gap-3 border-b border-white/10 pb-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-base font-semibold text-white">{item.productName}</p>
           <p className="text-xs text-slate-300">{item.category} • {item.sourceCountry}</p>
@@ -34,7 +34,7 @@ export function ProductCard({ item, averageEuroRate, canEdit, onEdit, onDelete }
             {status === "sold" ? "Sold" : "In stock"}
           </span>
         </div>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2 sm:justify-end">
           {canEdit ? (
             <>
               <button

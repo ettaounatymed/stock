@@ -10,7 +10,7 @@ type StatsCardsProps = {
 
 export function StatsCards({ summary }: StatsCardsProps) {
   return (
-    <section className="grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
       <ProfitCard value={summary.totalProfit} />
       <StockCard stockValue={summary.stockValue} euroRemaining={summary.euroRemaining} />
       <ProductsCard inStockCount={summary.inStockCount} soldCount={summary.soldCount} totalItems={summary.totalItems} />

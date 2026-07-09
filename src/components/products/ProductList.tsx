@@ -30,20 +30,20 @@ export function ProductList<T>({ items, emptyMessage, renderItem, layout = "grid
 
   return (
     <div>
-      <div className="grid gap-3 md:grid-cols-2">{pageItems.map(renderItem)}</div>
+      <div className="grid gap-3 lg:grid-cols-2">{pageItems.map(renderItem)}</div>
 
       {totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-center gap-3">
+        <div className="mt-4 flex flex-col items-center justify-center gap-2 sm:flex-row sm:gap-3">
           <button
             type="button"
             onClick={() => setPage((p) => Math.max(1, p - 1))}
-            className="rounded px-3 py-1 border bg-slate-950/30 hover:bg-slate-950/50"
+            className="w-full rounded border bg-slate-950/30 px-3 py-1 hover:bg-slate-950/50 sm:w-auto"
             disabled={page === 1}
           >
             Prev
           </button>
 
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center justify-center gap-2">
             {Array.from({ length: totalPages }).map((_, i) => {
               const idx = i + 1;
               return (
@@ -62,7 +62,7 @@ export function ProductList<T>({ items, emptyMessage, renderItem, layout = "grid
           <button
             type="button"
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-            className="rounded px-3 py-1 border bg-slate-950/30 hover:bg-slate-950/50"
+            className="w-full rounded border bg-slate-950/30 px-3 py-1 hover:bg-slate-950/50 sm:w-auto"
             disabled={page === totalPages}
           >
             Next

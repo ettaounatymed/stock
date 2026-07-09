@@ -5,6 +5,7 @@ import { isSupabaseConfigured, supabase, SUPABASE_TABLES } from "@/lib/supabase"
 import { emptyEuroForm, emptyProductForm, getProductStatus, type EuroFormValues, type EuroPurchaseRecord, type ProductFormValues, type ProductRecord, type StockSummary, type TabId } from "@/lib/stock";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
+import { Menu, X } from "lucide-react";
 import { UserProfile } from "@/components/layout/UserProfile";
 import { StatsCards } from "@/components/dashboard/StatsCards";
 import { ProductForm } from "@/components/products/ProductForm";
@@ -31,6 +32,7 @@ export default function Home() {
   const [ownerLoggedIn, setOwnerLoggedIn] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const canEdit = ownerLoggedIn;
   const showOwnerGate = !ownerLoggedIn;
@@ -485,21 +487,45 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#1f2937_100%)] text-white">
-      <section className="mx-auto flex w-full max-w-10xl flex-col gap-8 px-4 py-8 sm:px-6 lg:px-8">
-        
+      <section className="mx-auto flex w-full max-w-10xl flex-col gap-4 px-3 py-4 sm:gap-8 sm:px-6 sm:py-8 lg:px-8">
         <Header signOut={handleOwnerSignOut} />
-        
+
+        <div className="flex items-center justify-between gap-3 sm:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold text-white"
+          >
+            {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            Menu
+          </button>
+          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm text-cyan-100">
+            {activeTab === "overview" ? "Dashboard" : activeTab}
+          </span>
+        </div>
+
+        <div className="sm:hidden">
+          <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} isMobileOpen={mobileMenuOpen} onCloseMobile={() => setMobileMenuOpen(false)} />
+        </div>
+
         <StatsCards summary={summary} />
 
-        <section className="grid gap-6 xl:grid-cols-[280px_1fr]">
-          <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+        <section className="grid gap-4 xl:grid-cols-[280px_1fr] xl:gap-6">
+          <div className="hidden sm:block">
+            <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+          </div>
 
           <div className="space-y-6">
             {activeTab === "overview" && (
-              <article className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-               
+              <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
+                <div className="flex items-center justify-between gap-3 sm:hidden">
+                  <div>
+                    <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Mobile dashboard</p>
+                    <h2 className="mt-1 text-xl font-semibold text-white">Quick actions</h2>
+                  </div>
+                </div>
 
-                <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                <div className="mt-5 hidden gap-4 sm:grid md:grid-cols-2 xl:grid-cols-3">
                   {[
                     { id: "products", title: "🔎 Products", text: "Search all records and switch to the dedicated stock views.", tone: "cyan" },
                     { id: "in-stock", title: "🟢 In Stock", text: "See only current available products.", tone: "amber" },
@@ -517,11 +543,35 @@ export default function Home() {
                           ? "border-emerald-400/30 bg-emerald-400/10 hover:bg-emerald-400/15"
                           : card.tone === "amber"
                             ? "border-amber-400/30 bg-amber-400/10 hover:bg-amber-400/15"
-                            : "border-cyan-400/30 bg-cyan-400/10 hover:bg-cyan-400/15"
+                            : "border-cyan-400/30 bg-cyan-400/10 hover:bg-emerald-400/15"
                       }`}
                     >
                       <p className="text-sm uppercase tracking-[0.25em] text-cyan-100">{card.title}</p>
                       <p className="mt-2 text-base text-white">{card.text}</p>
+                    </button>
+                  ))}
+                </div>
+
+                <div className="mt-4 grid gap-3 sm:hidden">
+                  {[
+                    { id: "products", label: "Products", hint: `${records.length} total` },
+                    { id: "in-stock", label: "In Stock", hint: `${summary.inStockCount} active` },
+                    { id: "sold", label: "Sold", hint: `${summary.soldCount} sold` },
+                    { id: "add-product", label: "Add product", hint: "New entry" },
+                    { id: "euro", label: "Euro purchases", hint: "Rates & history" },
+                    { id: "statistics", label: "Statistics", hint: "Overview" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveTab(item.id as TabId)}
+                      className="flex items-center justify-between rounded-2xl border border-white/10 bg-slate-950/50 px-4 py-4 text-left text-sm font-semibold text-white"
+                    >
+                      <span>
+                        <span className="block">{item.label}</span>
+                        <span className="mt-1 block text-xs font-normal text-slate-300">{item.hint}</span>
+                      </span>
+                      <span className="text-cyan-200">→</span>
                     </button>
                   ))}
                 </div>
@@ -545,7 +595,7 @@ export default function Home() {
             )}
 
             {activeTab === "products" && (
-              <article className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
                 <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                   <div>
                     <h2 className="mt-2 text-xl font-semibold text-white">Search all products</h2>
@@ -566,7 +616,7 @@ export default function Home() {
             )}
 
             {activeTab === "in-stock" && (
-              <article className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
                 <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">In Stock</p>
                 <h2 className="mt-2 text-xl font-semibold text-white">Available products</h2>
                 <ProductFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} visibleCount={inStockRecords.length} totalCount={records.length} />
@@ -577,7 +627,7 @@ export default function Home() {
             )}
 
             {activeTab === "sold" && (
-              <article className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
+              <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
                 <h2 className="mt-2 text-xl font-semibold text-white">Sold products</h2>
                 <ProductFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} visibleCount={soldRecords.length} totalCount={records.length} />
                 <div className="mt-5 space-y-3">
@@ -592,7 +642,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="flex flex-wrap items-center justify-between gap-3 rounded-3xl border border-white/10 bg-white/10 px-6 py-4 text-sm text-slate-200/90 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <footer className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/10 px-4 py-4 text-sm text-slate-200/90 shadow-2xl shadow-black/20 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>{authStatus || "Ready."}</p>
           <div className="flex items-center gap-3">
             <span className="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1">{ownerLoggedIn ? "Owner mode" : "Read only"}</span>

@@ -17,8 +17,8 @@ export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, estim
   const currentBuyPriceEUR = Number(form.buyPriceEUR || 0);
 
   return (
-    <article className="rounded-3xl border border-white/10 bg-white/10 p-6 shadow-2xl shadow-black/20 backdrop-blur-xl">
-      <div className="mb-4 flex items-center justify-between gap-3">
+    <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">New entry</p>
           <h2 className="mt-2 text-xl font-semibold text-white">{editingId ? "Update product" : "Add a product"}</h2>
@@ -59,7 +59,7 @@ export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, estim
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm text-slate-100">
             Purchase date
             <input type="date" name="purchaseDate" value={form.purchaseDate} onChange={onChange} className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400" />
@@ -71,7 +71,7 @@ export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, estim
           </label>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm text-slate-100">
             Buy price (EUR)
             <input type="number" step="0.01" name="buyPriceEUR" value={form.buyPriceEUR} onChange={onChange} placeholder="350" className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400" />
