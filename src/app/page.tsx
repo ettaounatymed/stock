@@ -16,6 +16,8 @@ import { InStockProducts } from "@/components/stock/InStockProducts";
 import { SoldProducts } from "@/components/sold/SoldProducts";
 import { StatisticsPage } from "@/components/statistics/StatisticsPage";
 import { ExportPanel } from "@/components/export/ExportPanel";
+import { AddEuroPurchase } from "@/components/euro/AddEuroPurchase";
+import { EuroPurchaseHistory } from "@/components/euro/EuroPurchaseHistory";
 import { EuroPurchases } from "@/components/euro/EuroPurchases";
 import Swal from "sweetalert2";
 
@@ -558,7 +560,8 @@ export default function Home() {
                     { id: "in-stock", label: "In Stock", hint: `${summary.inStockCount} active` },
                     { id: "sold", label: "Sold", hint: `${summary.soldCount} sold` },
                     { id: "add-product", label: "Add product", hint: "New entry" },
-                    { id: "euro", label: "Euro purchases", hint: "Rates & history" },
+                    { id: "add-euro", label: "Add euro purchase", hint: "New entry" },
+                    { id: "euro-history", label: "Purchase history", hint: "Filtered list" },
                     { id: "statistics", label: "Statistics", hint: "Overview" },
                   ].map((item) => (
                     <button
@@ -589,6 +592,12 @@ export default function Home() {
                 onSubmit={handleSubmit}
               />
             )}
+
+            {activeTab === "add-euro" && (
+              <AddEuroPurchase form={euroForm} canEdit={canEdit} onChange={handleEuroChange} onSubmit={handleEuroSubmit} />
+            )}
+
+            {activeTab === "euro-history" && <EuroPurchaseHistory purchases={euroPurchases} onDelete={handleDeleteEuro} />}
 
             {activeTab === "euro" && (
               <EuroPurchases form={euroForm} canEdit={canEdit} purchases={euroPurchases} onChange={handleEuroChange} onSubmit={handleEuroSubmit} onDelete={handleDeleteEuro} />

@@ -62,6 +62,8 @@ export type TabId =
   | "sold"
   | "add-product"
   | "euro"
+  | "add-euro"
+  | "euro-history"
   | "statistics"
   | "export";
 
@@ -91,7 +93,8 @@ export const STOCK_TABS: Array<{ id: TabId; label: string; icon: React.ReactNode
   { id: "in-stock", label: "In Stock", icon: PackageCheck },
   { id: "sold", label: "Sold", icon: ShoppingCart },
   { id: "add-product", label: "Add Product", icon: PlusCircle },
-  { id: "euro", label: "Euro Purchases", icon: BadgeEuro },
+  { id: "add-euro", label: "Add Euro Purchase", icon: BadgeEuro },
+  { id: "euro-history", label: "Purchase History", icon: BadgeEuro },
   { id: "statistics", label: "Statistics", icon: BarChart3  },
   { id: "export", label: "Export", icon: Download  },
 ];
