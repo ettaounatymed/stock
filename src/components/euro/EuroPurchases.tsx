@@ -27,7 +27,7 @@ export function EuroPurchases({ form, canEdit, purchases, onChange, onSubmit, on
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_0.9fr]">
         <AddEuroPurchase form={form} canEdit={canEdit} onChange={onChange} onSubmit={onSubmit} />
-        <EuroPurchaseHistory purchases={purchases} onDelete={onDelete} />
+        <EuroPurchaseHistory purchases={purchases} canEdit={canEdit} onDelete={onDelete} />
       </div>
     </article>
   );

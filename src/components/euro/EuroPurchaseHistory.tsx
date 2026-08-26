@@ -1,22 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import type { EuroPurchaseRecord } from "@/lib/stock";
 
 type EuroPurchaseHistoryProps = {
   purchases: EuroPurchaseRecord[];
+  canEdit: boolean;
   onDelete: (id: string) => void;
 };
 
 const PAGE_SIZE = 5;
 
-export function EuroPurchaseHistory({ purchases, onDelete }: EuroPurchaseHistoryProps) {
+export function EuroPurchaseHistory({ purchases, canEdit, onDelete }: EuroPurchaseHistoryProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [page, setPage] = useState(1);
-
-  useEffect(() => {
-    setPage(1);
-  }, [searchTerm]);
 
   const filteredPurchases = useMemo(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -38,12 +35,6 @@ export function EuroPurchaseHistory({ purchases, onDelete }: EuroPurchaseHistory
   const safePage = Math.min(page, totalPages);
   const startIndex = (safePage - 1) * PAGE_SIZE;
   const pageItems = filteredPurchases.slice(startIndex, startIndex + PAGE_SIZE);
-
-  useEffect(() => {
-    if (page !== safePage) {
-      setPage(safePage);
-    }
-  }, [page, safePage]);
 
   return (
     <section className="rounded-3xl border border-white/10 bg-white/10 p-5 shadow-xl shadow-black/20 backdrop-blur-xl">
@@ -84,7 +75,7 @@ export function EuroPurchaseHistory({ purchases, onDelete }: EuroPurchaseHistory
                   <th className="px-4 py-3">MAD</th>
                   <th className="px-4 py-3">Rate</th>
                   <th className="px-4 py-3">Notes</th>
-                  <th className="px-4 py-3 text-right">Action</th>
+                  {canEdit ? <th className="px-4 py-3 text-right">Action</th> : null}
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/10">
@@ -98,15 +89,17 @@ export function EuroPurchaseHistory({ purchases, onDelete }: EuroPurchaseHistory
                       <td className="px-4 py-3">{Number(item.euroPriceMAD || 0).toFixed(2)}</td>
                       <td className="px-4 py-3">{rate.toFixed(2)}</td>
                       <td className="px-4 py-3 text-slate-400">{item.notes || "—"}</td>
-                      <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => onDelete(item.id)}
-                          className="rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-1 text-xs font-medium text-rose-100 transition hover:bg-rose-400/20"
-                        >
-                          Delete
-                        </button>
-                      </td>
+                      {canEdit ? (
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            type="button"
+                            onClick={() => onDelete(item.id)}
+                            className="rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-1 text-xs font-medium text-rose-100 transition hover:bg-rose-400/20"
+                          >
+                            Delete
+                          </button>
+                        </td>
+                      ) : null}
                     </tr>
                   );
                 })}

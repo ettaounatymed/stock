@@ -6,11 +6,14 @@ import { STOCK_TABS, type TabId } from "@/lib/stock";
 type SidebarProps = {
   activeTab: TabId;
   onSelectTab: (tab: TabId) => void;
+  visibleTabs?: TabId[];
   isMobileOpen?: boolean;
   onCloseMobile?: () => void;
 };
 
-export function Sidebar({ activeTab, onSelectTab, isMobileOpen = false, onCloseMobile }: SidebarProps) {
+export function Sidebar({ activeTab, onSelectTab, visibleTabs, isMobileOpen = false, onCloseMobile }: SidebarProps) {
+  const tabs = visibleTabs ? STOCK_TABS.filter((item) => visibleTabs.includes(item.id)) : STOCK_TABS;
+
   return (
     <aside className={`rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl transition-all sm:p-5 ${isMobileOpen ? "fixed inset-x-3 top-24 z-40 max-h-[70vh] overflow-auto" : "hidden sm:block"}`}>
       <div className="flex items-center justify-between sm:hidden">
@@ -22,7 +25,7 @@ export function Sidebar({ activeTab, onSelectTab, isMobileOpen = false, onCloseM
         ) : null}
       </div>
       <div className="mt-4 grid gap-2 sm:grid-cols-2 xl:grid-cols-1">
-        {STOCK_TABS.map((item) => (
+        {tabs.map((item) => (
           <button
             key={item.id}
             type="button"

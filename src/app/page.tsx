@@ -20,6 +20,7 @@ import { AddEuroPurchase } from "@/components/euro/AddEuroPurchase";
 import { EuroPurchaseHistory } from "@/components/euro/EuroPurchaseHistory";
 import { EuroPurchases } from "@/components/euro/EuroPurchases";
 import Swal from "sweetalert2";
+import type { Session } from "@supabase/supabase-js";
 
 export default function Home() {
   const [records, setRecords] = useState<ProductRecord[]>([]);
@@ -32,12 +33,22 @@ export default function Home() {
   const [authPassword, setAuthPassword] = useState("");
   const [authStatus, setAuthStatus] = useState("");
   const [ownerLoggedIn, setOwnerLoggedIn] = useState(false);
+  const [isOwner, setIsOwner] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const canEdit = ownerLoggedIn;
+  const canEdit = isOwner;
   const showOwnerGate = !ownerLoggedIn;
+  const viewerTabs: TabId[] = ["products", "statistics", "euro-history"];
+
+  const isOwnerSession = (session: Session | null) => {
+    const user = session?.user;
+    const configuredOwnerEmail = process.env.NEXT_PUBLIC_OWNER_EMAIL?.trim().toLowerCase();
+    const role = typeof user?.app_metadata?.role === "string" ? user.app_metadata.role : undefined;
+
+    return role === "owner" || Boolean(configuredOwnerEmail && user?.email?.toLowerCase() === configuredOwnerEmail);
+  };
 
   const getSyncErrorMessage = (
     productsError: { code?: string; message?: string } | null,
@@ -56,7 +67,7 @@ export default function Home() {
       return { ok: false, message: "Supabase is not configured yet. Add your project URL and anon key first." };
     }
 
-    if (!ownerLoggedIn) {
+    if (!isOwner) {
       return { ok: false, message: "Sign in as the Supabase owner before saving records." };
     }
 
@@ -107,6 +118,11 @@ export default function Home() {
         data: { session },
       } = await supabase.auth.getSession();
       setOwnerLoggedIn(Boolean(session));
+      const sessionIsOwner = isOwnerSession(session);
+      setIsOwner(sessionIsOwner);
+      if (session && !sessionIsOwner) {
+        setActiveTab("products");
+      }
 
       const [recordsResult, euroPurchasesResult] = await Promise.all([
         supabase.from(SUPABASE_TABLES.products).select("*").order("purchaseDate", { ascending: false }),
@@ -133,6 +149,11 @@ export default function Home() {
     if (supabase) {
       const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
         setOwnerLoggedIn(Boolean(session));
+        const sessionIsOwner = isOwnerSession(session);
+        setIsOwner(sessionIsOwner);
+        if (session && !sessionIsOwner) {
+          setActiveTab("products");
+        }
       });
 
       return () => {
@@ -435,7 +456,10 @@ export default function Home() {
       return;
     }
 
+    const sessionIsOwner = isOwnerSession(data.session);
     setOwnerLoggedIn(Boolean(data.session));
+    setIsOwner(sessionIsOwner);
+    setActiveTab(sessionIsOwner ? "overview" : "products");
     setAuthEmail("");
     setAuthPassword("");
     setAuthStatus("Owner access enabled. You can now open the dashboard.");
@@ -450,6 +474,7 @@ export default function Home() {
 
     await supabase.auth.signOut();
     setOwnerLoggedIn(false);
+    setIsOwner(false);
     setAuthStatus("Signed out. Sign in again to reopen the dashboard.");
   };
 
@@ -527,14 +552,14 @@ export default function Home() {
         </div>
 
         <div className="sm:hidden">
-          <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} isMobileOpen={mobileMenuOpen} onCloseMobile={() => setMobileMenuOpen(false)} />
+          <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} visibleTabs={isOwner ? undefined : viewerTabs} isMobileOpen={mobileMenuOpen} onCloseMobile={() => setMobileMenuOpen(false)} />
         </div>
 
         <StatsCards summary={summary} />
 
         <section className="grid gap-4 xl:grid-cols-[280px_1fr] xl:gap-6">
           <div className="hidden sm:block">
-            <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} />
+            <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} visibleTabs={isOwner ? undefined : viewerTabs} />
           </div>
 
           <div className="space-y-6">
@@ -617,7 +642,7 @@ export default function Home() {
               <AddEuroPurchase form={euroForm} canEdit={canEdit} onChange={handleEuroChange} onSubmit={handleEuroSubmit} />
             )}
 
-            {activeTab === "euro-history" && <EuroPurchaseHistory purchases={euroPurchases} onDelete={handleDeleteEuro} />}
+            {activeTab === "euro-history" && <EuroPurchaseHistory purchases={euroPurchases} canEdit={canEdit} onDelete={handleDeleteEuro} />}
 
             {activeTab === "euro" && (
               <EuroPurchases form={euroForm} canEdit={canEdit} purchases={euroPurchases} onChange={handleEuroChange} onSubmit={handleEuroSubmit} onDelete={handleDeleteEuro} />
@@ -674,7 +699,7 @@ export default function Home() {
         <footer className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/10 px-4 py-4 text-sm text-slate-200/90 shadow-2xl shadow-black/20 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-6">
           <p>{authStatus || "Ready."}</p>
           <div className="flex items-center gap-3">
-            <span className="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1">{ownerLoggedIn ? "Owner mode" : "Read only"}</span>
+            <span className="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1">{isOwner ? "Owner mode" : "Read only"}</span>
             <button type="button" onClick={handleOwnerSignOut} className="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1 transition hover:border-cyan-400/40 hover:bg-cyan-400/10">
               Sign out
             </button>
