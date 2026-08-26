@@ -171,6 +171,7 @@ export default function Home() {
     }, 0);
 
     const totalPurchasedEUR = euroPurchases.reduce((sum, item) => sum + Number(item.euroAmount || 0), 0);
+    const totalPurchasedEURMAD = euroPurchases.reduce((sum, item) => sum + Number(item.euroPriceMAD || 0), 0);
 
     const inStockItems = records.filter((item) => getProductStatus(item) === "in-stock");
     const soldItems = records.filter((item) => getProductStatus(item) === "sold");
@@ -190,7 +191,18 @@ export default function Home() {
       return sum + (Number(item.salePriceMAD || 0) - buyCostMAD);
     }, 0);
 
+    const soldBuyCostMAD = soldItems.reduce((sum, item) => {
+      const rate = averageEuroRate > 0 ? averageEuroRate : 0;
+      return sum + (rate > 0 ? Number(item.buyPriceEUR || 0) * rate : 0);
+    }, 0);
+
     const totalSellMAD = records.reduce((sum, item) => sum + Number(item.salePriceMAD || 0), 0);
+    const averageProfitPerSoldItem = soldItems.length > 0 ? soldProfit / soldItems.length : 0;
+    const profitMargin = soldBuyCostMAD > 0 ? (soldProfit / soldBuyCostMAD) * 100 : 0;
+    const sellThroughRate = records.length > 0 ? (soldItems.length / records.length) * 100 : 0;
+    const lowStockThreshold = 4;
+    const lowStockCount = inStockItems.length;
+    const lowStockAlert = lowStockCount > 0 && lowStockCount <= lowStockThreshold;
 
     return {
       totalItems: records.length,
@@ -202,6 +214,14 @@ export default function Home() {
       euroRemaining: Math.max(totalPurchasedEUR - records.reduce((sum, item) => sum + Number(item.buyPriceEUR || 0), 0), 0),
       totalProfit: soldProfit,
       averageEuroRate,
+      totalEuroBought: totalPurchasedEUR,
+      totalEuroBoughtMAD: totalPurchasedEURMAD,
+      averageProfitPerSoldItem,
+      profitMargin,
+      sellThroughRate,
+      lowStockCount,
+      lowStockThreshold,
+      lowStockAlert,
     };
   }, [records, euroPurchases, averageEuroRate]);
 

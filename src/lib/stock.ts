@@ -53,6 +53,14 @@ export type StockSummary = {
   euroRemaining: number;
   totalProfit: number;
   averageEuroRate: number;
+  totalEuroBought: number;
+  totalEuroBoughtMAD: number;
+  averageProfitPerSoldItem: number;
+  profitMargin: number;
+  sellThroughRate: number;
+  lowStockCount: number;
+  lowStockThreshold: number;
+  lowStockAlert: boolean;
 };
 
 export type TabId =
