@@ -66,7 +66,52 @@ export function EuroPurchaseHistory({ purchases, canEdit, onDelete }: EuroPurcha
               : "No purchases match this filter."}
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+            <div className="md:hidden">
+            <div className="divide-y divide-white/10">
+              {pageItems.map((item) => {
+                const euroAmount = Number(item.euroAmount || 0);
+                const euroPriceMAD = Number(item.euroPriceMAD || 0);
+                const rate = euroAmount > 0 ? euroPriceMAD / euroAmount : 0;
+
+                return (
+                  <article key={item.id} className="space-y-3 p-4 text-sm text-slate-200">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="min-w-0 break-words font-medium text-white">{item.purchaseDate || "No date"}</p>
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => onDelete(item.id)}
+                          className="min-h-11 shrink-0 rounded-xl border border-rose-400/30 bg-rose-400/10 px-3 py-2 text-xs font-medium text-rose-100 transition hover:bg-rose-400/20"
+                        >
+                          Delete
+                        </button>
+                      ) : null}
+                    </div>
+
+                    <dl className="grid grid-cols-3 gap-2">
+                      <div className="min-w-0 rounded-xl bg-slate-900/60 p-2">
+                        <dt className="text-[10px] uppercase tracking-[0.12em] text-slate-400">EUR</dt>
+                        <dd className="mt-1 truncate font-medium text-white">{euroAmount.toFixed(2)}</dd>
+                      </div>
+                      <div className="min-w-0 rounded-xl bg-slate-900/60 p-2">
+                        <dt className="text-[10px] uppercase tracking-[0.12em] text-slate-400">MAD</dt>
+                        <dd className="mt-1 truncate font-medium text-white">{euroPriceMAD.toFixed(2)}</dd>
+                      </div>
+                      <div className="min-w-0 rounded-xl bg-slate-900/60 p-2">
+                        <dt className="text-[10px] uppercase tracking-[0.12em] text-slate-400">Rate</dt>
+                        <dd className="mt-1 truncate font-medium text-white">{rate.toFixed(2)}</dd>
+                      </div>
+                    </dl>
+
+                    <p className="break-words text-xs leading-5 text-slate-400">{item.notes || "No notes"}</p>
+                  </article>
+                );
+              })}
+            </div>
+            </div>
+
+            <div className="hidden overflow-x-auto md:block">
             <table className="min-w-full divide-y divide-white/10 text-sm">
               <thead className="bg-slate-900/70 text-left text-xs uppercase tracking-[0.2em] text-slate-400">
                 <tr>
@@ -105,7 +150,8 @@ export function EuroPurchaseHistory({ purchases, canEdit, onDelete }: EuroPurcha
                 })}
               </tbody>
             </table>
-          </div>
+            </div>
+          </>
         )}
       </div>
 

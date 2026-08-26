@@ -40,7 +40,7 @@ export default function Home() {
 
   const canEdit = isOwner;
   const showOwnerGate = !ownerLoggedIn;
-  const viewerTabs: TabId[] = ["products", "statistics", "euro-history"];
+  const viewerTabs: TabId[] = ["products", "in-stock", "sold", "statistics", "euro-history"];
 
   const isOwnerSession = (session: Session | null) => {
     const user = session?.user;
