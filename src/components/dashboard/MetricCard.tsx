@@ -6,7 +6,7 @@ type MetricCardProps = {
   variant?: "default" | "warning" | "positive";
 };
 
-const variantStyles: Record<MetricCardProps["variant"], string> = {
+const variantStyles: Record<NonNullable<MetricCardProps["variant"]>, string> = {
   default: "border-white/10 bg-slate-950/60 text-slate-100",
   warning: "border-amber-400/30 bg-amber-400/10 text-amber-100",
   positive: "border-emerald-400/30 bg-emerald-400/10 text-emerald-100",
