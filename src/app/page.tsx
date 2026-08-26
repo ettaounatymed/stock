@@ -555,7 +555,7 @@ export default function Home() {
           <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} visibleTabs={isOwner ? undefined : viewerTabs} isMobileOpen={mobileMenuOpen} onCloseMobile={() => setMobileMenuOpen(false)} />
         </div>
 
-        <StatsCards summary={summary} />
+   
 
         <section className="grid gap-4 xl:grid-cols-[280px_1fr] xl:gap-6">
           <div className="hidden sm:block">
