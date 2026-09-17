@@ -28,6 +28,7 @@ export function StatisticsPage({ summary, onSelectTab }: StatisticsPageProps) {
           { label: "Low stock", value: `${summary.lowStockCount} items`, icon: "⚠️" },
           { label: "Avg EUR rate", value: summary.averageEuroRate > 0 ? `${summary.averageEuroRate.toFixed(2)} MAD / EUR` : "Add purchases", icon: "⚡" },
           { label: "Total euro bought", value: `${summary.totalEuroBought.toFixed(2)} EUR`, icon: "💶" },
+          { label: "Total euro purchases (MAD)", value: `${summary.totalEuroBoughtMAD.toFixed(2)} MAD`, icon: "💳" },
           { label: "Total sell (MAD)", value: `${summary.totalSellMAD.toFixed(2)} MAD`, icon: "💵" },
           { label: "Total items", value: summary.totalItems, icon: "📊" },
         ].map((item) => (
