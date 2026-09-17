@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured, supabase, SUPABASE_TABLES } from "@/lib/supabase";
-import { emptyEuroForm, emptyProductForm, getProductStatus, type EuroFormValues, type EuroPurchaseRecord, type ProductFormValues, type ProductRecord, type StockSummary, type TabId } from "@/lib/stock";
+import { emptyEuroForm, emptyProductForm, getProductStatus, normalizeDateForInput, type EuroFormValues, type EuroPurchaseRecord, type ProductFormValues, type ProductRecord, type StockSummary, type TabId } from "@/lib/stock";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Menu, X } from "lucide-react";
@@ -15,6 +15,7 @@ import { ProductCard } from "@/components/products/ProductCard";
 import { InStockProducts } from "@/components/stock/InStockProducts";
 import { SoldProducts } from "@/components/sold/SoldProducts";
 import { StatisticsPage } from "@/components/statistics/StatisticsPage";
+import { ProductFlowChart } from "@/components/statistics/ProductFlowChart";
 import { ExportPanel } from "@/components/export/ExportPanel";
 import { AddEuroPurchase } from "@/components/euro/AddEuroPurchase";
 import { EuroPurchaseHistory } from "@/components/euro/EuroPurchaseHistory";
@@ -416,8 +417,8 @@ export default function Home() {
       productName: item.productName,
       category: item.category,
       sourceCountry: item.sourceCountry,
-      purchaseDate: item.purchaseDate,
-      saleDate: item.saleDate,
+      purchaseDate: normalizeDateForInput(item.purchaseDate),
+      saleDate: normalizeDateForInput(item.saleDate),
       buyPriceEUR: item.buyPriceEUR,
       euroRate: item.euroRate,
       salePriceMAD: item.salePriceMAD,
@@ -623,6 +624,8 @@ export default function Home() {
                     </button>
                   ))}
                 </div>
+
+                <ProductFlowChart records={records} />
               </article>
             )}
 

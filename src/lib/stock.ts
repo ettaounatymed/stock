@@ -95,6 +95,17 @@ export const emptyEuroForm: EuroFormValues = {
   notes: "",
 };
 
+export const normalizeDateForInput = (value: string | null | undefined) => {
+  const date = value?.trim() ?? "";
+  const isoDate = date.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoDate) {
+    return `${isoDate[1]}-${isoDate[2]}-${isoDate[3]}`;
+  }
+
+  const europeanDate = date.match(/^(\d{2})[-/]([0-1]\d)[-/](\d{4})/);
+  return europeanDate ? `${europeanDate[3]}-${europeanDate[2]}-${europeanDate[1]}` : "";
+};
+
 export const STOCK_TABS: Array<{ id: TabId; label: string; icon: React.ReactNode | React.ElementType }> = [
   { id: "overview", label: "Overview", icon: TableOfContents },
   { id: "products", label: "Products", icon: PackageSearch  },
