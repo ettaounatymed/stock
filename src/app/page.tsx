@@ -428,13 +428,34 @@ export default function Home() {
     setActiveTab("add-product");
   };
 
-  const handleDeleteEuro = (id: string) => {
+  const handleDeleteEuro = async (id: string) => {
     if (!canEdit) {
       setAuthStatus("Owner sign-in is required to edit records.");
       return;
     }
 
+    const result = await Swal.fire({
+      title: "Delete this euro purchase?",
+      text: "This will remove it from the purchase history.",
+      showCancelButton: true,
+      confirmButtonText: "Delete",
+      cancelButtonText: "Cancel",
+    });
+
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    if (supabase && isSupabaseConfigured) {
+      const deleteResult = await supabase.from(SUPABASE_TABLES.euroPurchases).delete().eq("id", id);
+      if (deleteResult.error) {
+        setAuthStatus(`Failed to delete euro purchase from Supabase: ${deleteResult.error.message}`);
+        return;
+      }
+    }
+
     setEuroPurchases((prev) => prev.filter((item) => item.id !== id));
+    setAuthStatus("Euro purchase deleted successfully.");
   };
 
   const handleOwnerSignIn = async (event: React.FormEvent) => {
