@@ -47,7 +47,7 @@ export function StatisticsPage({ summary, onSelectTab }: StatisticsPageProps) {
       </div>
 
       <div className="mt-5 rounded-3xl border border-cyan-400/20 bg-cyan-400/10 p-5 text-sm text-cyan-50">
-        Profit is calculated from your euro purchases and your sell price in MAD. If you do not have euro history yet, the profit will be estimated once rates are available.
+        Profit = sales - purchase cost - allocated product costs - general expenses. Expenses in EUR are converted using your average EUR rate.
       </div>
     </article>
   );

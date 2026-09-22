@@ -237,6 +237,13 @@ export default function Home() {
     return costs;
   }, {}), [averageEuroRate, expenses]);
 
+  const generalExpenseCostMAD = useMemo(() => expenses
+    .filter((expense) => expense.allocations.length === 0)
+    .reduce((total, expense) => {
+      const conversionRate = expense.currency === "EUR" ? averageEuroRate : 1;
+      return total + Number(expense.amount || 0) * conversionRate;
+    }, 0), [averageEuroRate, expenses]);
+
   const summary: StockSummary = useMemo(() => {
     const totalBuyMAD = records.reduce((sum, item) => {
       const rate = averageEuroRate > 0 ? averageEuroRate : 0;
@@ -263,7 +270,7 @@ export default function Home() {
       const buyCostMAD = rate > 0 ? Number(item.buyPriceEUR || 0) * rate : 0;
 
       return sum + (Number(item.salePriceMAD || 0) - buyCostMAD - (expenseCostByProduct[item.id] || 0));
-    }, 0);
+    }, 0) - generalExpenseCostMAD;
 
     const soldBuyCostMAD = soldItems.reduce((sum, item) => {
       const rate = averageEuroRate > 0 ? averageEuroRate : 0;
@@ -297,7 +304,7 @@ export default function Home() {
       lowStockThreshold,
       lowStockAlert,
     };
-  }, [records, euroPurchases, averageEuroRate, expenseCostByProduct]);
+  }, [records, euroPurchases, averageEuroRate, expenseCostByProduct, generalExpenseCostMAD]);
 
   const effectiveEuroRate = averageEuroRate > 0 ? averageEuroRate : 0;
   const currentBuyPriceEUR = Number(form.buyPriceEUR || 0);
