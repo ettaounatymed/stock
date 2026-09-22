@@ -6,15 +6,17 @@ import { getProductStatus } from "@/lib/stock";
 type ProductCardProps = {
   item: ProductRecord;
   averageEuroRate: number;
+  allocatedExpenseMAD?: number;
   canEdit: boolean;
   onEdit: (item: ProductRecord) => void;
   onDelete: (id: string) => void;
 };
 
-export function ProductCard({ item, averageEuroRate, canEdit, onEdit, onDelete }: ProductCardProps) {
+export function ProductCard({ item, averageEuroRate, allocatedExpenseMAD = 0, canEdit, onEdit, onDelete }: ProductCardProps) {
   const euroRate = averageEuroRate > 0 ? averageEuroRate : 0;
   const buyCostMAD = euroRate > 0 ? Number(item.buyPriceEUR || 0) * euroRate : 0;
-  const profitMAD = euroRate > 0 ? Number(item.salePriceMAD || 0) - buyCostMAD : 0;
+  const realCostMAD = buyCostMAD + allocatedExpenseMAD;
+  const profitMAD = euroRate > 0 ? Number(item.salePriceMAD || 0) - realCostMAD : 0;
   const status = getProductStatus(item);
 
   return (
@@ -69,7 +71,7 @@ export function ProductCard({ item, averageEuroRate, canEdit, onEdit, onDelete }
         </div>
         <div>
           <dt className="text-slate-400">Buy cost</dt>
-          <dd>{buyCostMAD.toFixed(2)} MAD</dd>
+          <dd>{realCostMAD.toFixed(2)} MAD</dd>
         </div>
         <div>
           <dt className="text-slate-400">EUR rate</dt>
@@ -82,6 +84,10 @@ export function ProductCard({ item, averageEuroRate, canEdit, onEdit, onDelete }
         <div>
           <dt className="text-slate-400">Profit</dt>
           <dd className={profitMAD >= 0 ? "text-emerald-300" : "text-rose-300"}>{profitMAD.toFixed(2)} MAD</dd>
+        </div>
+        <div>
+          <dt className="text-slate-400">Additional costs</dt>
+          <dd>{allocatedExpenseMAD.toFixed(2)} MAD</dd>
         </div>
         <div>
           <dt className="text-slate-400">Notes</dt>

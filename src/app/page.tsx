@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { isSupabaseConfigured, supabase, SUPABASE_TABLES } from "@/lib/supabase";
-import { emptyEuroForm, emptyProductForm, getProductStatus, normalizeDateForInput, type EuroFormValues, type EuroPurchaseRecord, type ProductFormValues, type ProductRecord, type StockSummary, type TabId } from "@/lib/stock";
+import { emptyEuroForm, emptyExpenseForm, emptyProductForm, getProductStatus, normalizeDateForInput, type ExpenseAllocation, type ExpenseFormValues, type ExpenseRecord, type EuroFormValues, type EuroPurchaseRecord, type ProductFormValues, type ProductRecord, type StockSummary, type TabId } from "@/lib/stock";
 import { Header } from "@/components/layout/Header";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { Menu, X } from "lucide-react";
@@ -20,15 +20,19 @@ import { ExportPanel } from "@/components/export/ExportPanel";
 import { AddEuroPurchase } from "@/components/euro/AddEuroPurchase";
 import { EuroPurchaseHistory } from "@/components/euro/EuroPurchaseHistory";
 import { EuroPurchases } from "@/components/euro/EuroPurchases";
+import { ExpensesPage } from "@/components/expenses/ExpensesPage";
 import Swal from "sweetalert2";
 import type { Session } from "@supabase/supabase-js";
 
 export default function Home() {
   const [records, setRecords] = useState<ProductRecord[]>([]);
   const [euroPurchases, setEuroPurchases] = useState<EuroPurchaseRecord[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseRecord[]>([]);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<ProductFormValues>(emptyProductForm);
   const [euroForm, setEuroForm] = useState<EuroFormValues>(emptyEuroForm);
+  const [expenseForm, setExpenseForm] = useState<ExpenseFormValues>(emptyExpenseForm);
+  const [editingExpenseId, setEditingExpenseId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [authEmail, setAuthEmail] = useState("");
   const [authPassword, setAuthPassword] = useState("");
@@ -41,7 +45,7 @@ export default function Home() {
 
   const canEdit = isOwner;
   const showOwnerGate = !ownerLoggedIn;
-  const viewerTabs: TabId[] = ["products", "in-stock", "sold", "statistics", "euro-history"];
+  const viewerTabs: TabId[] = ["products", "in-stock", "sold", "statistics", "euro-history", "expenses"];
 
   const isOwnerSession = (session: Session | null) => {
     const user = session?.user;
@@ -51,19 +55,16 @@ export default function Home() {
     return role === "owner" || Boolean(configuredOwnerEmail && user?.email?.toLowerCase() === configuredOwnerEmail);
   };
 
-  const getSyncErrorMessage = (
-    productsError: { code?: string; message?: string } | null,
-    euroError: { code?: string; message?: string } | null,
-  ) => {
-    const message = [productsError?.message, euroError?.message].filter(Boolean).join(" \n");
-    const isRlsError = [productsError?.code, euroError?.code].filter(Boolean).includes("42501");
+  const getSyncErrorMessage = (...errors: Array<{ code?: string; message?: string } | null>) => {
+    const message = errors.map((error) => error?.message).filter(Boolean).join(" \n");
+    const isRlsError = errors.map((error) => error?.code).filter(Boolean).includes("42501");
 
     return isRlsError
       ? "Supabase is blocking writes because Row Level Security is not allowing your owner account to save records. Enable RLS policies for stock_records and euro_purchases in Supabase, then try again."
       : `Supabase sync failed: ${message || "Unknown error"}`;
   };
 
-  const syncToSupabase = async (nextRecords: ProductRecord[], nextEuroPurchases: EuroPurchaseRecord[]) => {
+  const syncToSupabase = async (nextRecords: ProductRecord[], nextEuroPurchases: EuroPurchaseRecord[], nextExpenses: ExpenseRecord[]) => {
     if (!isSupabaseConfigured || !supabase) {
       return { ok: false, message: "Supabase is not configured yet. Add your project URL and anon key first." };
     }
@@ -72,15 +73,34 @@ export default function Home() {
       return { ok: false, message: "Sign in as the Supabase owner before saving records." };
     }
 
-    const [productsResult, euroPurchasesResult] = await Promise.all([
+    const expenseRows = nextExpenses.map((expense) => ({
+      id: expense.id,
+      description: expense.description,
+      category: expense.category,
+      amount: expense.amount,
+      currency: expense.currency,
+      date: expense.date,
+      notes: expense.notes,
+      created_at: expense.created_at,
+      allocation_method: expense.allocationMethod,
+    }));
+    const allocationRows = nextExpenses.flatMap((expense) => expense.allocations.map((allocation) => ({
+      id: allocation.id,
+      expense_id: allocation.expenseId,
+      product_id: allocation.productId,
+      amount: allocation.amount,
+    })));
+    const [productsResult, euroPurchasesResult, expensesResult, allocationsResult] = await Promise.all([
       supabase.from(SUPABASE_TABLES.products).upsert(nextRecords, { onConflict: "id" }),
       supabase.from(SUPABASE_TABLES.euroPurchases).upsert(nextEuroPurchases, { onConflict: "id" }),
+      supabase.from(SUPABASE_TABLES.expenses).upsert(expenseRows, { onConflict: "id" }),
+      supabase.from(SUPABASE_TABLES.expenseAllocations).upsert(allocationRows, { onConflict: "id" }),
     ]);
 
-    if (productsResult.error || euroPurchasesResult.error) {
+    if (productsResult.error || euroPurchasesResult.error || expensesResult.error || allocationsResult.error) {
       return {
         ok: false,
-        message: getSyncErrorMessage(productsResult.error, euroPurchasesResult.error),
+        message: getSyncErrorMessage(productsResult.error, euroPurchasesResult.error, expensesResult.error, allocationsResult.error),
       };
     }
 
@@ -106,6 +126,15 @@ export default function Home() {
           window.localStorage.removeItem("stock-tracker-euro-purchases");
         }
       }
+
+      const savedExpenses = window.localStorage.getItem("stock-tracker-expenses");
+      if (savedExpenses) {
+        try {
+          setExpenses(JSON.parse(savedExpenses) as ExpenseRecord[]);
+        } catch {
+          window.localStorage.removeItem("stock-tracker-expenses");
+        }
+      }
     };
 
     const loadFromSupabase = async () => {
@@ -125,9 +154,11 @@ export default function Home() {
         setActiveTab("products");
       }
 
-      const [recordsResult, euroPurchasesResult] = await Promise.all([
+      const [recordsResult, euroPurchasesResult, expensesResult, allocationsResult] = await Promise.all([
         supabase.from(SUPABASE_TABLES.products).select("*").order("purchaseDate", { ascending: false }),
         supabase.from(SUPABASE_TABLES.euroPurchases).select("*").order("purchaseDate", { ascending: false }),
+        supabase.from(SUPABASE_TABLES.expenses).select("*").order("date", { ascending: false }),
+        supabase.from(SUPABASE_TABLES.expenseAllocations).select("*"),
       ]);
 
       if (recordsResult.error) {
@@ -140,6 +171,18 @@ export default function Home() {
         console.error("Unable to load euro purchases from Supabase", euroPurchasesResult.error);
       } else if (euroPurchasesResult.data) {
         setEuroPurchases(euroPurchasesResult.data as EuroPurchaseRecord[]);
+      }
+
+      if (expensesResult.error) {
+        console.error("Unable to load expenses from Supabase", expensesResult.error);
+      } else if (expensesResult.data) {
+        const allocationData = allocationsResult.data ?? [];
+        setExpenses((expensesResult.data as Array<Record<string, unknown>>).map((expense) => ({
+          ...expense,
+          amount: String(expense.amount ?? 0),
+          allocationMethod: expense.allocation_method === "manual" ? "manual" : "equal",
+          allocations: allocationData.filter((allocation) => allocation.expense_id === expense.id).map((allocation) => ({ id: allocation.id, expenseId: allocation.expense_id, productId: allocation.product_id, amount: String(allocation.amount ?? 0) })),
+        })) as ExpenseRecord[]);
       }
 
       setLoadingData(false);
@@ -169,14 +212,15 @@ export default function Home() {
     }
 
     if (isSupabaseConfigured && supabase && ownerLoggedIn) {
-      void syncToSupabase(records, euroPurchases).catch((error) => {
+      void syncToSupabase(records, euroPurchases, expenses).catch((error) => {
         console.error("Supabase save failed", error);
       });
     }
 
     window.localStorage.setItem("stock-tracker-records", JSON.stringify(records));
     window.localStorage.setItem("stock-tracker-euro-purchases", JSON.stringify(euroPurchases));
-  }, [records, euroPurchases, loadingData, ownerLoggedIn]);
+    window.localStorage.setItem("stock-tracker-expenses", JSON.stringify(expenses));
+  }, [records, euroPurchases, expenses, loadingData, ownerLoggedIn]);
 
   const averageEuroRate = useMemo(() => {
     const totalEUR = euroPurchases.reduce((sum, item) => sum + Number(item.euroAmount || 0), 0);
@@ -185,11 +229,19 @@ export default function Home() {
     return totalEUR > 0 ? totalMAD / totalEUR : 0;
   }, [euroPurchases]);
 
+  const expenseCostByProduct = useMemo(() => expenses.reduce<Record<string, number>>((costs, expense) => {
+    const conversionRate = expense.currency === "EUR" ? averageEuroRate : 1;
+    expense.allocations.forEach((allocation) => {
+      costs[allocation.productId] = (costs[allocation.productId] || 0) + Number(allocation.amount || 0) * conversionRate;
+    });
+    return costs;
+  }, {}), [averageEuroRate, expenses]);
+
   const summary: StockSummary = useMemo(() => {
     const totalBuyMAD = records.reduce((sum, item) => {
       const rate = averageEuroRate > 0 ? averageEuroRate : 0;
       const buy = rate > 0 ? Number(item.buyPriceEUR || 0) * rate : 0;
-      return sum + buy;
+      return sum + buy + (expenseCostByProduct[item.id] || 0);
     }, 0);
 
     const totalPurchasedEUR = euroPurchases.reduce((sum, item) => sum + Number(item.euroAmount || 0), 0);
@@ -203,19 +255,19 @@ export default function Home() {
       const buyCostMAD = euroRate > 0 ? Number(item.buyPriceEUR || 0) * euroRate : 0;
       const sellPriceMAD = Number(item.salePriceMAD || 0);
 
-      return sum + (sellPriceMAD > 0 ? sellPriceMAD : buyCostMAD);
+      return sum + (sellPriceMAD > 0 ? sellPriceMAD : buyCostMAD + (expenseCostByProduct[item.id] || 0));
     }, 0);
 
     const soldProfit = soldItems.reduce((sum, item) => {
       const rate = averageEuroRate > 0 ? averageEuroRate : 0;
       const buyCostMAD = rate > 0 ? Number(item.buyPriceEUR || 0) * rate : 0;
 
-      return sum + (Number(item.salePriceMAD || 0) - buyCostMAD);
+      return sum + (Number(item.salePriceMAD || 0) - buyCostMAD - (expenseCostByProduct[item.id] || 0));
     }, 0);
 
     const soldBuyCostMAD = soldItems.reduce((sum, item) => {
       const rate = averageEuroRate > 0 ? averageEuroRate : 0;
-      return sum + (rate > 0 ? Number(item.buyPriceEUR || 0) * rate : 0);
+      return sum + (rate > 0 ? Number(item.buyPriceEUR || 0) * rate : 0) + (expenseCostByProduct[item.id] || 0);
     }, 0);
 
     const totalSellMAD = records.reduce((sum, item) => sum + Number(item.salePriceMAD || 0), 0);
@@ -245,7 +297,7 @@ export default function Home() {
       lowStockThreshold,
       lowStockAlert,
     };
-  }, [records, euroPurchases, averageEuroRate]);
+  }, [records, euroPurchases, averageEuroRate, expenseCostByProduct]);
 
   const effectiveEuroRate = averageEuroRate > 0 ? averageEuroRate : 0;
   const currentBuyPriceEUR = Number(form.buyPriceEUR || 0);
@@ -313,7 +365,7 @@ export default function Home() {
 
     setRecords(nextRecords);
 
-    const syncResult = await syncToSupabase(nextRecords, euroPurchases);
+    const syncResult = await syncToSupabase(nextRecords, euroPurchases, expenses);
     if (!syncResult.ok) {
       setAuthStatus(syncResult.message);
     } else {
@@ -360,7 +412,7 @@ export default function Home() {
 
     setEuroPurchases(nextEuroPurchases);
 
-    const syncResult = await syncToSupabase(records, nextEuroPurchases);
+    const syncResult = await syncToSupabase(records, nextEuroPurchases, expenses);
     if (!syncResult.ok) {
       setAuthStatus(syncResult.message);
     } else {
@@ -369,6 +421,120 @@ export default function Home() {
 
     setEuroForm(emptyEuroForm);
     setActiveTab("euro");
+  };
+
+  const handleExpenseChange = (event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = event.target;
+    setExpenseForm((previous) => ({
+      ...previous,
+      [name]: name === "allocationMethod" ? value as ExpenseFormValues["allocationMethod"] : value,
+    }));
+  };
+
+  const handleExpenseProductToggle = (productId: string) => {
+    setExpenseForm((previous) => {
+      const selected = previous.productIds.includes(productId);
+      const productIds = selected ? previous.productIds.filter((id) => id !== productId) : [...previous.productIds, productId];
+      const manualAllocations = { ...previous.manualAllocations };
+      if (selected) {
+        delete manualAllocations[productId];
+      }
+      return { ...previous, productIds, manualAllocations };
+    });
+  };
+
+  const handleManualAllocationChange = (productId: string, value: string) => {
+    setExpenseForm((previous) => ({ ...previous, manualAllocations: { ...previous.manualAllocations, [productId]: value } }));
+  };
+
+  const handleExpenseSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!canEdit) {
+      setAuthStatus("Owner sign-in is required to edit expenses.");
+      return;
+    }
+
+    const amount = Number(expenseForm.amount || 0);
+    if (!expenseForm.description.trim() || !expenseForm.date || amount <= 0) {
+      setAuthStatus("Description, date, and a positive amount are required.");
+      return;
+    }
+
+    const allocationAmount = expenseForm.allocationMethod === "manual"
+      ? expenseForm.productIds.reduce((sum, productId) => sum + Number(expenseForm.manualAllocations[productId] || 0), 0)
+      : amount;
+    if (expenseForm.productIds.length > 0 && expenseForm.allocationMethod === "manual" && Math.abs(allocationAmount - amount) > 0.01) {
+      setAuthStatus("Manual allocations must add up to the expense amount.");
+      return;
+    }
+
+    const existing = expenses.find((expense) => expense.id === editingExpenseId);
+    const allocations: ExpenseAllocation[] = expenseForm.productIds.map((productId) => ({
+      id: existing?.allocations.find((allocation) => allocation.productId === productId)?.id || crypto.randomUUID(),
+      expenseId: editingExpenseId || crypto.randomUUID(),
+      productId,
+      amount: String(expenseForm.allocationMethod === "manual" ? Number(expenseForm.manualAllocations[productId] || 0) : amount / expenseForm.productIds.length),
+    }));
+    const expenseId = editingExpenseId || crypto.randomUUID();
+    const nextExpense: ExpenseRecord = {
+      id: expenseId,
+      description: expenseForm.description.trim(),
+      category: expenseForm.category,
+      amount: String(amount),
+      currency: expenseForm.currency,
+      date: expenseForm.date,
+      notes: expenseForm.notes.trim(),
+      created_at: existing?.created_at || new Date().toISOString(),
+      allocationMethod: expenseForm.allocationMethod,
+      allocations: allocations.map((allocation) => ({ ...allocation, expenseId })),
+    };
+    const nextExpenses = editingExpenseId ? expenses.map((expense) => expense.id === editingExpenseId ? nextExpense : expense) : [nextExpense, ...expenses];
+    setExpenses(nextExpenses);
+    if (editingExpenseId && supabase && isSupabaseConfigured) {
+      const clearAllocationsResult = await supabase.from(SUPABASE_TABLES.expenseAllocations).delete().eq("expense_id", editingExpenseId);
+      if (clearAllocationsResult.error) {
+        setAuthStatus(`Failed to update expense allocations: ${clearAllocationsResult.error.message}`);
+        return;
+      }
+    }
+    const syncResult = await syncToSupabase(records, euroPurchases, nextExpenses);
+    setAuthStatus(syncResult.ok ? "Expense saved successfully." : syncResult.message);
+    setExpenseForm(emptyExpenseForm);
+    setEditingExpenseId(null);
+  };
+
+  const handleExpenseEdit = (expense: ExpenseRecord) => {
+    setEditingExpenseId(expense.id);
+    setExpenseForm({
+      description: expense.description,
+      category: expense.category,
+      amount: expense.amount,
+      currency: expense.currency,
+      date: normalizeDateForInput(expense.date),
+      notes: expense.notes,
+      allocationMethod: expense.allocationMethod,
+      productIds: expense.allocations.map((allocation) => allocation.productId),
+      manualAllocations: Object.fromEntries(expense.allocations.map((allocation) => [allocation.productId, allocation.amount])),
+    });
+  };
+
+  const handleExpenseDelete = async (id: string) => {
+    if (!canEdit) {
+      setAuthStatus("Owner sign-in is required to edit expenses.");
+      return;
+    }
+    const result = await Swal.fire({ title: "Delete this expense?", showCancelButton: true, confirmButtonText: "Delete", cancelButtonText: "Cancel" });
+    if (!result.isConfirmed) return;
+    if (supabase && isSupabaseConfigured) {
+      const allocationDelete = await supabase.from(SUPABASE_TABLES.expenseAllocations).delete().eq("expense_id", id);
+      const expenseDelete = await supabase.from(SUPABASE_TABLES.expenses).delete().eq("id", id);
+      if (allocationDelete.error || expenseDelete.error) {
+        setAuthStatus(`Failed to delete expense: ${allocationDelete.error?.message || expenseDelete.error?.message}`);
+        return;
+      }
+    }
+    setExpenses((previous) => previous.filter((expense) => expense.id !== id));
+    setAuthStatus("Expense deleted successfully.");
   };
 
   const handleDelete = (id: string) => {
@@ -686,8 +852,8 @@ export default function Home() {
                   items={filteredRecords}
                   emptyMessage="No products found."
                   pageSize={4}
-                  renderItem={(item) => (
-                    <ProductCard key={item.id} item={item} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} />
+                    renderItem={(item) => (
+                    <ProductCard key={item.id} item={item} averageEuroRate={averageEuroRate} allocatedExpenseMAD={expenseCostByProduct[item.id] || 0} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} />
                   )}
                 />
               </article>
@@ -699,7 +865,7 @@ export default function Home() {
                 <h2 className="mt-2 text-xl font-semibold text-white">Available products</h2>
                 <ProductFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} visibleCount={inStockRecords.length} totalCount={records.length} />
                 <div className="mt-5 space-y-3">
-                  <InStockProducts items={inStockRecords} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} pageSize={4} />
+                  <InStockProducts items={inStockRecords} averageEuroRate={averageEuroRate} expenseCostByProduct={expenseCostByProduct} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} pageSize={4} />
                 </div>
               </article>
             )}
@@ -709,7 +875,7 @@ export default function Home() {
                 <h2 className="mt-2 text-xl font-semibold text-white">Sold products</h2>
                 <ProductFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} visibleCount={soldRecords.length} totalCount={records.length} />
                 <div className="mt-5 space-y-3">
-                  <SoldProducts items={soldRecords} averageEuroRate={averageEuroRate} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} pageSize={4} />
+                  <SoldProducts items={soldRecords} averageEuroRate={averageEuroRate} expenseCostByProduct={expenseCostByProduct} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} pageSize={4} />
                 </div>
               </article>
             )}
@@ -717,6 +883,22 @@ export default function Home() {
             {activeTab === "statistics" && <StatisticsPage summary={summary} onSelectTab={setActiveTab} />}
 
             {activeTab === "export" && <ExportPanel onExport={exportCsv} disabled={records.length === 0} totalCount={records.length} />}
+
+            {activeTab === "expenses" && (
+              <ExpensesPage
+                expenses={expenses}
+                products={records}
+                form={expenseForm}
+                canEdit={canEdit}
+                editingId={editingExpenseId}
+                onChange={handleExpenseChange}
+                onProductToggle={handleExpenseProductToggle}
+                onManualAllocationChange={handleManualAllocationChange}
+                onSubmit={handleExpenseSubmit}
+                onEdit={handleExpenseEdit}
+                onDelete={handleExpenseDelete}
+              />
+            )}
           </div>
         </section>
 

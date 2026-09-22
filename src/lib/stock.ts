@@ -1,4 +1,4 @@
-import { BadgeEuro,TableOfContents,PackageSearch, PackageCheck, ShoppingCart, PlusCircle, BarChart3, Download } from 'lucide-react';
+import { BadgeEuro, TableOfContents, PackageSearch, PackageCheck, ShoppingCart, PlusCircle, BarChart3, Download, ReceiptText } from 'lucide-react';
 
 export type ProductRecord = {
   id: string;
@@ -43,6 +43,41 @@ export type EuroFormValues = {
   notes: string;
 };
 
+export type ExpenseCategory = "Import" | "Transport" | "Delivery" | "Packaging" | "Customs" | "Other";
+export type ExpenseAllocationMethod = "equal" | "manual";
+
+export type ExpenseAllocation = {
+  id: string;
+  expenseId: string;
+  productId: string;
+  amount: string;
+};
+
+export type ExpenseRecord = {
+  id: string;
+  description: string;
+  category: ExpenseCategory;
+  amount: string;
+  currency: "EUR" | "MAD";
+  date: string;
+  notes: string;
+  created_at: string;
+  allocationMethod: ExpenseAllocationMethod;
+  allocations: ExpenseAllocation[];
+};
+
+export type ExpenseFormValues = {
+  description: string;
+  category: ExpenseCategory;
+  amount: string;
+  currency: "EUR" | "MAD";
+  date: string;
+  notes: string;
+  allocationMethod: ExpenseAllocationMethod;
+  productIds: string[];
+  manualAllocations: Record<string, string>;
+};
+
 export type StockSummary = {
   totalItems: number;
   inStockCount: number;
@@ -73,7 +108,8 @@ export type TabId =
   | "add-euro"
   | "euro-history"
   | "statistics"
-  | "export";
+  | "export"
+  | "expenses";
 
 export const emptyProductForm: ProductFormValues = {
   productName: "",
@@ -93,6 +129,18 @@ export const emptyEuroForm: EuroFormValues = {
   euroAmount: "",
   euroPriceMAD: "",
   notes: "",
+};
+
+export const emptyExpenseForm: ExpenseFormValues = {
+  description: "",
+  category: "Import",
+  amount: "",
+  currency: "EUR",
+  date: "",
+  notes: "",
+  allocationMethod: "equal",
+  productIds: [],
+  manualAllocations: {},
 };
 
 export const normalizeDateForInput = (value: string | null | undefined) => {
@@ -116,6 +164,7 @@ export const STOCK_TABS: Array<{ id: TabId; label: string; icon: React.ReactNode
   { id: "euro-history", label: "Purchase History", icon: BadgeEuro },
   { id: "statistics", label: "Statistics", icon: BarChart3  },
   { id: "export", label: "Export", icon: Download  },
+  { id: "expenses", label: "Expenses", icon: ReceiptText },
 ];
 
 export const getProductStatus = (item: Pick<ProductRecord, "status" | "saleDate" | "salePriceMAD">) => {

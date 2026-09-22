@@ -43,3 +43,23 @@ textarea,
   min-height: 44px;
   touch-action: manipulation;
 }
+
+.field {
+  display: block;
+  width: 100%;
+  border: 1px solid rgb(255 255 255 / 0.1);
+  min-height: 48px;
+  border-radius: 0.75rem;
+  background: rgb(2 6 23 / 0.72);
+  padding: 0.75rem 0.875rem;
+  color: white;
+  outline: none;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+.field::placeholder { color: rgb(148 163 184 / 0.58); }
+.field:hover { border-color: rgb(148 163 184 / 0.3); }
+.field:focus { border-color: rgb(34 211 238 / 0.85); background: rgb(2 6 23 / 0.9); box-shadow: 0 0 0 3px rgb(34 211 238 / 0.12); }
+textarea.field { min-height: 96px; line-height: 1.5; }
+select.field { color-scheme: dark; }
+input[type="date"].field { color-scheme: dark; }

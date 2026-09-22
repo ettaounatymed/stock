@@ -7,13 +7,14 @@ import { ProductList } from "@/components/products/ProductList";
 type SoldProductsProps = {
   items: ProductRecord[];
   averageEuroRate: number;
+  expenseCostByProduct?: Record<string, number>;
   canEdit: boolean;
   onEdit: (item: ProductRecord) => void;
   onDelete: (id: string) => void;
   pageSize?: number;
 };
 
-export function SoldProducts({ items, averageEuroRate, canEdit, onEdit, onDelete, pageSize }: SoldProductsProps) {
+export function SoldProducts({ items, averageEuroRate, expenseCostByProduct = {}, canEdit, onEdit, onDelete, pageSize }: SoldProductsProps) {
   return (
     <ProductList
       items={items}
@@ -23,6 +24,7 @@ export function SoldProducts({ items, averageEuroRate, canEdit, onEdit, onDelete
           key={item.id}
           item={item}
           averageEuroRate={averageEuroRate}
+          allocatedExpenseMAD={expenseCostByProduct[item.id] || 0}
           canEdit={canEdit}
           onEdit={onEdit}
           onDelete={onDelete}
