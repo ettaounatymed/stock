@@ -8,6 +8,8 @@ export type ProductRecord = {
   purchaseDate: string;
   saleDate: string;
   buyPriceEUR: string;
+  buyCurrency?: "EUR" | "MAD";
+  buyPriceMAD?: string;
   euroRate: string;
   salePriceMAD: string;
   notes: string;
@@ -29,7 +31,9 @@ export type ProductFormValues = {
   sourceCountry: string;
   purchaseDate: string;
   saleDate: string;
+  buyCurrency: "EUR" | "MAD";
   buyPriceEUR: string;
+  buyPriceMAD: string;
   euroRate: string;
   salePriceMAD: string;
   notes: string;
@@ -117,7 +121,9 @@ export const emptyProductForm: ProductFormValues = {
   sourceCountry: "Spain",
   purchaseDate: "",
   saleDate: "",
+  buyCurrency: "EUR",
   buyPriceEUR: "",
+  buyPriceMAD: "",
   euroRate: "",
   salePriceMAD: "",
   notes: "",
@@ -173,4 +179,13 @@ export const getProductStatus = (item: Pick<ProductRecord, "status" | "saleDate"
   }
 
   return item.status === "sold" ? "sold" : "in-stock";
+};
+
+export const getProductBuyCostMAD = (item: Pick<ProductRecord, "buyCurrency" | "buyPriceEUR" | "buyPriceMAD" | "euroRate">, averageEuroRate = 0) => {
+  if (item.buyCurrency === "MAD") {
+    return Number(item.buyPriceMAD || 0);
+  }
+
+  const euroRate = Number(item.euroRate || 0) || averageEuroRate;
+  return Number(item.buyPriceEUR || 0) * euroRate;
 };

@@ -1,7 +1,7 @@
 "use client";
 
 import type { ProductRecord } from "@/lib/stock";
-import { getProductStatus } from "@/lib/stock";
+import { getProductBuyCostMAD, getProductStatus } from "@/lib/stock";
 
 type ProductCardProps = {
   item: ProductRecord;
@@ -13,11 +13,13 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ item, averageEuroRate, allocatedExpenseMAD = 0, canEdit, onEdit, onDelete }: ProductCardProps) {
-  const euroRate = averageEuroRate > 0 ? averageEuroRate : 0;
-  const buyCostMAD = euroRate > 0 ? Number(item.buyPriceEUR || 0) * euroRate : 0;
+  const euroRate = Number(item.euroRate || 0) || averageEuroRate;
+  const buyCostMAD = getProductBuyCostMAD(item, averageEuroRate);
   const realCostMAD = buyCostMAD + allocatedExpenseMAD;
-  const profitMAD = euroRate > 0 ? Number(item.salePriceMAD || 0) - realCostMAD : 0;
   const status = getProductStatus(item);
+  const profitMAD = status === "sold" && (item.buyCurrency === "MAD" || euroRate > 0)
+    ? Number(item.salePriceMAD || 0) - realCostMAD
+    : null;
 
   return (
     <article className="rounded-3xl border border-white/10 bg-slate-950/65 p-3 shadow-lg shadow-black/20 sm:p-4">
@@ -70,20 +72,26 @@ export function ProductCard({ item, averageEuroRate, allocatedExpenseMAD = 0, ca
           <dd>{item.saleDate || "—"}</dd>
         </div>
         <div>
+          <dt className="text-slate-400">Paid</dt>
+          <dd>{item.buyCurrency === "MAD" ? `${Number(item.buyPriceMAD || 0).toFixed(2)} MAD` : `${Number(item.buyPriceEUR || 0).toFixed(2)} EUR`}</dd>
+        </div>
+        <div>
           <dt className="text-slate-400">Buy cost</dt>
           <dd>{realCostMAD.toFixed(2)} MAD</dd>
         </div>
-        <div>
+        {item.buyCurrency !== "MAD" ? <div>
           <dt className="text-slate-400">EUR rate</dt>
           <dd>{euroRate > 0 ? `${euroRate.toFixed(2)} MAD / EUR` : "Not available"}</dd>
-        </div>
+        </div> : null}
         <div>
           <dt className="text-slate-400">Sell price</dt>
           <dd>{Number(item.salePriceMAD || 0).toFixed(2)} MAD</dd>
         </div>
         <div>
           <dt className="text-slate-400">Profit</dt>
-          <dd className={profitMAD >= 0 ? "text-emerald-300" : "text-rose-300"}>{profitMAD.toFixed(2)} MAD</dd>
+          <dd className={profitMAD === null ? "text-slate-400" : profitMAD >= 0 ? "text-emerald-300" : "text-rose-300"}>
+            {profitMAD === null ? "Not sold yet" : `${profitMAD.toFixed(2)} MAD`}
+          </dd>
         </div>
         <div>
           <dt className="text-slate-400">Additional costs</dt>

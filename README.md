@@ -24,9 +24,10 @@ This project uses [`next/font`](https://nextjs.org/docs/app/building-your-applic
 
 1. Create a Supabase project and open the SQL editor.
 2. Create two tables:
-   - `stock_records(id text primary key, productName text, category text, sourceCountry text, purchaseDate text, saleDate text, buyPriceEUR text, euroRate text, salePriceMAD text, notes text, imei text, status text)`
+   - `stock_records(id text primary key, productName text, category text, sourceCountry text, purchaseDate text, saleDate text, buyCurrency text default 'EUR', buyPriceEUR text, buyPriceMAD text default '0', euroRate text, salePriceMAD text, notes text, imei text, status text)`
    - `euro_purchases(id text primary key, purchaseDate text, euroAmount text, euroPriceMAD text, notes text)`
 3. Copy the project URL and anon key into `.env.local` using `.env.example` as the template.
+   If the `stock_records` table already exists, run `supabase/product-purchase-currency.sql` in the Supabase SQL editor to add the purchase-currency fields.
 4. Add the owner email to `.env.local` so the existing owner account keeps edit access:
 
     ```env

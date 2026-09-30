@@ -8,13 +8,13 @@ type ProductFormProps = {
   canEdit: boolean;
   editingId: string | null;
   effectiveEuroRate: number;
-  estimatedBuyCostMAD: number;
   onChange: (event: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void;
 };
 
-export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, estimatedBuyCostMAD, onChange, onSubmit }: ProductFormProps) {
-  const currentBuyPriceEUR = Number(form.buyPriceEUR || 0);
+export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, onChange, onSubmit }: ProductFormProps) {
+  const currentBuyPrice = Number(form.buyCurrency === "MAD" ? form.buyPriceMAD || 0 : form.buyPriceEUR || 0);
+  const estimatedBuyCostMAD = form.buyCurrency === "MAD" ? currentBuyPrice : currentBuyPrice * effectiveEuroRate;
 
   return (
     <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
@@ -54,6 +54,7 @@ export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, estim
             <select name="sourceCountry" value={form.sourceCountry} onChange={onChange} className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400">
               <option>Spain</option>
               <option>France</option>
+              <option>Morocco</option>
               <option>Other</option>
             </select>
           </label>
@@ -73,13 +74,23 @@ export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, estim
 
         <div className="grid gap-4 md:grid-cols-2">
           <label className="block text-sm text-slate-100">
-            Buy price (EUR)
-            <input type="number" step="0.01" name="buyPriceEUR" value={form.buyPriceEUR} onChange={onChange} placeholder="350" className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400" />
-            {currentBuyPriceEUR > 0 ? (
+            Purchase currency
+            <select name="buyCurrency" value={form.buyCurrency} onChange={onChange} className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400">
+              <option value="MAD">MAD</option>
+              <option value="EUR">EUR</option>
+            </select>
+          </label>
+
+          <label className="block text-sm text-slate-100">
+            Buy price ({form.buyCurrency})
+            <input type="number" min="0" step="0.01" name={form.buyCurrency === "MAD" ? "buyPriceMAD" : "buyPriceEUR"} value={form.buyCurrency === "MAD" ? form.buyPriceMAD : form.buyPriceEUR} onChange={onChange} placeholder={form.buyCurrency === "MAD" ? "3500" : "350"} className="mt-1 w-full rounded-2xl border border-white/10 bg-slate-950/70 px-4 py-3 text-white outline-none focus:border-cyan-400" />
+            {currentBuyPrice > 0 ? (
               <p className="mt-2 text-xs text-slate-400">
-                {effectiveEuroRate > 0
-                  ? `Using ${effectiveEuroRate.toFixed(2)} MAD / EUR from euro purchase history. Estimated cost: ${estimatedBuyCostMAD.toFixed(2)} MAD.`
-                  : "Add euro purchase history to calculate EUR → MAD automatically."}
+                {form.buyCurrency === "MAD"
+                  ? `Purchase cost: ${estimatedBuyCostMAD.toFixed(2)} MAD.`
+                  : effectiveEuroRate > 0
+                    ? `Using ${effectiveEuroRate.toFixed(2)} MAD / EUR from euro purchase history. Estimated cost: ${estimatedBuyCostMAD.toFixed(2)} MAD.`
+                    : "Add euro purchase history to calculate EUR → MAD automatically."}
               </p>
             ) : null}
           </label>
