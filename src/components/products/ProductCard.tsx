@@ -13,11 +13,12 @@ type ProductCardProps = {
 };
 
 export function ProductCard({ item, averageEuroRate, allocatedExpenseMAD = 0, canEdit, onEdit, onDelete }: ProductCardProps) {
-  const euroRate = Number(item.euroRate || 0) || averageEuroRate;
+  const purchaseTimeEuroRate = Number(item.euroRate || 0);
+  const euroRateForCost = averageEuroRate || purchaseTimeEuroRate;
   const buyCostMAD = getProductBuyCostMAD(item, averageEuroRate);
   const realCostMAD = buyCostMAD + allocatedExpenseMAD;
   const status = getProductStatus(item);
-  const profitMAD = status === "sold" && (item.buyCurrency === "MAD" || euroRate > 0)
+  const profitMAD = status === "sold" && (item.buyCurrency === "MAD" || euroRateForCost > 0)
     ? Number(item.salePriceMAD || 0) - realCostMAD
     : null;
 
@@ -80,8 +81,8 @@ export function ProductCard({ item, averageEuroRate, allocatedExpenseMAD = 0, ca
           <dd>{realCostMAD.toFixed(2)} MAD</dd>
         </div>
         {item.buyCurrency !== "MAD" ? <div>
-          <dt className="text-slate-400">EUR rate</dt>
-          <dd>{euroRate > 0 ? `${euroRate.toFixed(2)} MAD / EUR` : "Not available"}</dd>
+          <dt className="text-slate-400">EUR rate at purchase</dt>
+          <dd>{purchaseTimeEuroRate > 0 ? `${purchaseTimeEuroRate.toFixed(2)} MAD / EUR` : "Not recorded"}</dd>
         </div> : null}
         <div>
           <dt className="text-slate-400">Sell price</dt>

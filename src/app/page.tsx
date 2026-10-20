@@ -341,13 +341,19 @@ export default function Home() {
     const buyCurrency = form.buyCurrency;
     const buyPriceEUR = buyCurrency === "EUR" ? Number(form.buyPriceEUR || 0) : 0;
     const buyPriceMAD = buyCurrency === "MAD" ? Number(form.buyPriceMAD || 0) : 0;
-    const euroRate = buyCurrency === "EUR" ? Number(form.euroRate || 0) || averageEuroRate : 0;
+    const existingProduct = editingId ? records.find((item) => item.id === editingId) : undefined;
+    const purchaseTimeEuroRate = buyCurrency === "EUR"
+      ? existingProduct?.buyCurrency === "EUR" && Number(existingProduct.euroRate || 0) > 0
+        ? Number(existingProduct.euroRate)
+        : averageEuroRate
+      : 0;
+    const euroRateForCost = buyCurrency === "EUR" ? averageEuroRate || purchaseTimeEuroRate : 0;
     const salePriceMAD = Number(form.salePriceMAD || 0);
     const saleDate = form.saleDate.trim();
     const shouldBeSold = Boolean(saleDate && salePriceMAD > 0);
 
-    const purchaseCostMAD = buyCurrency === "MAD" ? buyPriceMAD : buyPriceEUR * euroRate;
-    const profitMAD = buyCurrency === "MAD" || euroRate > 0 ? salePriceMAD - purchaseCostMAD : 0;
+    const purchaseCostMAD = buyCurrency === "MAD" ? buyPriceMAD : buyPriceEUR * euroRateForCost;
+    const profitMAD = buyCurrency === "MAD" || euroRateForCost > 0 ? salePriceMAD - purchaseCostMAD : 0;
 
     const nextItem: ProductRecord = {
       id: editingId || crypto.randomUUID(),
@@ -357,7 +363,7 @@ export default function Home() {
       buyCurrency,
       buyPriceEUR: String(buyPriceEUR),
       buyPriceMAD: String(buyPriceMAD),
-      euroRate: String(euroRate),
+      euroRate: String(purchaseTimeEuroRate),
       salePriceMAD: String(salePriceMAD),
       notes: form.notes.trim(),
       imei: form.imei.trim(),
@@ -381,7 +387,7 @@ export default function Home() {
     window.alert(
       !shouldBeSold
         ? `${form.productName} ${editingId ? "updated" : "added"} to stock. Profit will be calculated after sale.`
-        : buyCurrency === "MAD" || euroRate > 0
+        : buyCurrency === "MAD" || euroRateForCost > 0
           ? `${form.productName} ${editingId ? "updated" : "added"}. Profit: ${profitMAD.toFixed(2)} MAD.`
           : `${form.productName} ${editingId ? "updated" : "added"}. Profit will be calculated when euro purchase history is available.`,
     );
@@ -606,7 +612,7 @@ export default function Home() {
       buyCurrency: item.buyCurrency || "EUR",
       buyPriceEUR: item.buyPriceEUR,
       buyPriceMAD: item.buyPriceMAD || "",
-      euroRate: item.euroRate,
+      euroRate: Number(item.euroRate || 0) > 0 ? item.euroRate : "",
       salePriceMAD: item.salePriceMAD,
       notes: item.notes,
       imei: item.imei || "",
@@ -687,13 +693,14 @@ export default function Home() {
   };
 
   const exportCsv = () => {
-    const header = ["Product", "Category", "Country", "Buy Date", "Sell Date", "Buy Currency", "Buy Price", "EUR Rate", "Buy Cost MAD", "Sell Price MAD", "Status", "IMEI", "Profit MAD", "Notes"];
+    const header = ["Product", "Category", "Country", "Buy Date", "Sell Date", "Buy Currency", "Buy Price", "EUR Rate at Purchase", "Buy Cost MAD", "Sell Price MAD", "Status", "IMEI", "Profit MAD", "Notes"];
 
     const rows = records.map((item) => {
-      const euroRate = Number(item.euroRate || 0) || averageEuroRate;
+      const purchaseTimeEuroRate = Number(item.euroRate || 0);
+      const euroRateForCost = averageEuroRate || purchaseTimeEuroRate;
       const buyCostMAD = getProductBuyCostMAD(item, averageEuroRate);
       const status = getProductStatus(item);
-      const profitMAD = status === "sold" && (item.buyCurrency === "MAD" || euroRate > 0)
+      const profitMAD = status === "sold" && (item.buyCurrency === "MAD" || euroRateForCost > 0)
         ? (Number(item.salePriceMAD || 0) - buyCostMAD).toFixed(2)
         : "";
 
@@ -705,7 +712,7 @@ export default function Home() {
         item.saleDate,
         item.buyCurrency || "EUR",
         item.buyCurrency === "MAD" ? item.buyPriceMAD || "0" : item.buyPriceEUR,
-        euroRate.toFixed(2),
+        purchaseTimeEuroRate > 0 ? purchaseTimeEuroRate.toFixed(2) : "",
         buyCostMAD.toFixed(2),
         item.salePriceMAD,
         status === "sold" ? "Sold" : "In stock",
@@ -858,7 +865,7 @@ export default function Home() {
             {activeTab === "euro-history" && <EuroPurchaseHistory purchases={euroPurchases} canEdit={canEdit} onDelete={handleDeleteEuro} />}
 
             {activeTab === "euro" && (
-              <EuroPurchases form={euroForm} canEdit={canEdit} purchases={euroPurchases} onChange={handleEuroChange} onSubmit={handleEuroSubmit} onDelete={handleDeleteEuro} />
+              <EuroPurchases form={euroForm} canEdit={canEdit} purchases={euroPurchases} averageEuroRate={averageEuroRate} onChange={handleEuroChange} onSubmit={handleEuroSubmit} onDelete={handleDeleteEuro} />
             )}
 
             {activeTab === "products" && (

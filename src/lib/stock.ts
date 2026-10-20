@@ -186,6 +186,6 @@ export const getProductBuyCostMAD = (item: Pick<ProductRecord, "buyCurrency" | "
     return Number(item.buyPriceMAD || 0);
   }
 
-  const euroRate = Number(item.euroRate || 0) || averageEuroRate;
+  const euroRate = averageEuroRate || Number(item.euroRate || 0);
   return Number(item.buyPriceEUR || 0) * euroRate;
 };

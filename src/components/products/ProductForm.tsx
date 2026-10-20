@@ -14,7 +14,8 @@ type ProductFormProps = {
 
 export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, onChange, onSubmit }: ProductFormProps) {
   const currentBuyPrice = Number(form.buyCurrency === "MAD" ? form.buyPriceMAD || 0 : form.buyPriceEUR || 0);
-  const estimatedBuyCostMAD = form.buyCurrency === "MAD" ? currentBuyPrice : currentBuyPrice * effectiveEuroRate;
+  const selectedEuroRate = effectiveEuroRate || Number(form.euroRate || 0);
+  const estimatedBuyCostMAD = form.buyCurrency === "MAD" ? currentBuyPrice : currentBuyPrice * selectedEuroRate;
 
   return (
     <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
@@ -88,12 +89,23 @@ export function ProductForm({ form, canEdit, editingId, effectiveEuroRate, onCha
               <p className="mt-2 text-xs text-slate-400">
                 {form.buyCurrency === "MAD"
                   ? `Purchase cost: ${estimatedBuyCostMAD.toFixed(2)} MAD.`
-                  : effectiveEuroRate > 0
-                    ? `Using ${effectiveEuroRate.toFixed(2)} MAD / EUR from euro purchase history. Estimated cost: ${estimatedBuyCostMAD.toFixed(2)} MAD.`
+                  : selectedEuroRate > 0
+                    ? `Using the current weighted average of ${selectedEuroRate.toFixed(2)} MAD / EUR. Estimated cost: ${estimatedBuyCostMAD.toFixed(2)} MAD.`
                     : "Add euro purchase history to calculate EUR → MAD automatically."}
               </p>
             ) : null}
           </label>
+
+          {form.buyCurrency === "EUR" ? (
+            <div className="rounded-2xl border border-cyan-400/20 bg-cyan-400/10 p-3 text-sm text-cyan-50">
+              {editingId && Number(form.euroRate || 0) > 0 ? (
+                <p>Rate recorded at purchase: {Number(form.euroRate).toFixed(2)} MAD / EUR.</p>
+              ) : (
+                <p>Current weighted average: {effectiveEuroRate > 0 ? `${effectiveEuroRate.toFixed(2)} MAD / EUR` : "not available"}.</p>
+              )}
+              <p className="mt-1 text-xs text-cyan-100/80">This rate is kept as a purchase reference. Cost and profit are recalculated with the current weighted average whenever euro purchase history changes.</p>
+            </div>
+          ) : null}
 
           <label className="block text-sm text-slate-100">
             IMEI (optional)
