@@ -542,39 +542,52 @@ export default function Home() {
     setAuthStatus("Expense deleted successfully.");
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (!canEdit) {
       setAuthStatus("Owner sign-in is required to edit records.");
       return;
     }
 
-    Swal.fire({
+    const result = await Swal.fire({
       title: "Do you want to delete this product?",
-      showDenyButton: true,
+      text: "This will permanently remove the product from stock.",
       showCancelButton: true,
       confirmButtonText: "Delete",
-      denyButtonText: "Don't delete",
-    }).then((result) => {
-      if (result.isConfirmed) {
-        if (supabase && isSupabaseConfigured) {
-          void supabase
-            .from(SUPABASE_TABLES.products)
-            .delete()
-            .eq("id", id)
-            .then((deleteResult) => {
-              if (deleteResult.error) {
-                setAuthStatus(`Failed to delete product from Supabase: ${deleteResult.error.message}`);
-              } else {
-                setAuthStatus("Product deleted from Supabase successfully.");
-              }
-            });
+      cancelButtonText: "Cancel",
+    });
+    if (!result.isConfirmed) {
+      return;
+    }
+
+    if (supabase && isSupabaseConfigured) {
+      try {
+        const deleteResult = await supabase
+          .from(SUPABASE_TABLES.products)
+          .delete()
+          .eq("id", id)
+          .select("id");
+
+        if (deleteResult.error) {
+          setAuthStatus(`Failed to delete product from Supabase: ${deleteResult.error.message}`);
+          return;
         }
 
-        setRecords((prev) => prev.filter((item) => item.id !== id));
-      } else if (result.isDenied) {
-        Swal.fire("Changes are not deleted", "", "info");
+        if (!deleteResult.data?.some((item) => item.id === id)) {
+          setAuthStatus("Product was not deleted from Supabase. Check the owner account permissions and try again.");
+          return;
+        }
+      } catch (error) {
+        setAuthStatus(`Failed to delete product from Supabase: ${error instanceof Error ? error.message : "Unknown error"}`);
+        return;
       }
-    });
+    }
+
+    setRecords((previous) => previous.filter((item) => item.id !== id));
+    setExpenses((previous) => previous.map((expense) => ({
+      ...expense,
+      allocations: expense.allocations.filter((allocation) => allocation.productId !== id),
+    })));
+    setAuthStatus(isSupabaseConfigured ? "Product permanently deleted from Supabase and stock." : "Product permanently deleted from local stock.");
   };
 
   const handleEdit = (item: ProductRecord) => {
