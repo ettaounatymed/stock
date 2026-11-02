@@ -86,6 +86,7 @@ export type StockSummary = {
   totalItems: number;
   inStockCount: number;
   soldCount: number;
+  totalProductBuyEUR: number;
   totalBuyMAD: number;
   totalSellMAD: number;
   stockValue: number;

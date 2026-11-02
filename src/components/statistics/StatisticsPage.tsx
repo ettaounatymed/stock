@@ -20,6 +20,7 @@ export function StatisticsPage({ summary, onSelectTab }: StatisticsPageProps) {
         {[
           { id: "in-stock", label: "In stock", value: summary.inStockCount, icon: "🟢" },
           { id: "sold", label: "Sold", value: summary.soldCount, icon: "✅" },
+          { label: "Total product purchases (EUR)", value: `${summary.totalProductBuyEUR.toFixed(2)} EUR`, icon: "🛒" },
           { label: "Buy cost (MAD)", value: summary.totalBuyMAD.toFixed(2), icon: "🧾" },
           { label: "Stock value", value: `${summary.stockValue.toFixed(2)} MAD`, icon: "📦" },
           { label: "Total profit", value: `${summary.totalProfit.toFixed(2)} MAD`, icon: "💰" },

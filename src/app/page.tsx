@@ -284,6 +284,9 @@ export default function Home() {
       totalItems: records.length,
       inStockCount: inStockItems.length,
       soldCount: soldItems.length,
+      totalProductBuyEUR: records.reduce((sum, item) => {
+        return sum + (item.buyCurrency === "MAD" ? 0 : Number(item.buyPriceEUR || 0));
+      }, 0),
       totalBuyMAD,
       totalSellMAD,
       stockValue,
