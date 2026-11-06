@@ -1,7 +1,8 @@
 "use client";
 
 import { STOCK_TABS, type TabId } from "@/lib/stock";
-
+import Image from "next/image";
+import logo from "@/images/logo.png";
 
 type SidebarProps = {
   activeTab: TabId;
@@ -25,8 +26,15 @@ export function Sidebar({ activeTab, onSelectTab, visibleTabs, isMobileOpen = fa
         ) : null}
       </div>
       <div className="mb-5 hidden border-b border-blue-300/10 pb-5 sm:block">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-blue-300">Stock manager</p>
-        <p className="mt-1 text-xs text-slate-500">Inventory workspace</p>
+        <Image
+              src={logo}
+              alt="M & Y Stock Tracker"
+              width={64}
+              height={64}
+              className="h-12 w-12 rounded-2xl border border-blue-300/15 object-cover shadow-lg shadow-blue-950/30 sm:h-14 sm:w-14"
+            />
+            
+
       </div>
       <div className="mt-4 grid gap-2 sm:mt-0 sm:grid-cols-2 xl:grid-cols-1">
         {tabs.map((item) => (

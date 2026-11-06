@@ -30,7 +30,7 @@ export function Header({ signOut }: HeaderProps) {
             />
             <div>
               <p className="text-sm font-semibold tracking-wide text-white sm:text-base">M &amp; Y Stock</p>
-              <p className="mt-0.5 text-xs text-slate-400">Inventory &amp; sales dashboard</p>
+      
             </div>
           </div>
           <button
