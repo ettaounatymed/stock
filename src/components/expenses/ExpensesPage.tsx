@@ -158,7 +158,7 @@ function ExpenseForm({ form, products, canEdit, editingId, onChange, onProductTo
   const allocationTotal = form.allocationMethod === "manual" ? manualTotal : amount;
 
   return (
-    <article className="overflow-hidden rounded-[2rem] border border-white/10 bg-slate-950/35 shadow-2xl shadow-black/30">
+    <article className="app-form-panel overflow-hidden rounded-[2rem] border shadow-2xl shadow-black/30">
       <header className="flex flex-col gap-4 border-b border-white/10 bg-[linear-gradient(110deg,rgba(34,211,238,0.16),rgba(15,23,42,0.25))] p-5 sm:flex-row sm:items-center sm:justify-between sm:p-7">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.3em] text-cyan-200">{editingId ? "Edit record" : "New record"}</p>

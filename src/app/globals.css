@@ -1,8 +1,12 @@
 @import "tailwindcss";
 
 :root {
-  --background: #020617;
+  --background: #030b1a;
   --foreground: #e2e8f0;
+  --surface: #081831;
+  --surface-raised: #0b1d3b;
+  --surface-border: rgb(96 165 250 / 0.15);
+  --accent: #1685ff;
 }
 
 @theme inline {
@@ -16,11 +20,11 @@ body {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    radial-gradient(circle at top, rgba(56, 189, 248, 0.08), transparent 18%),
-    radial-gradient(circle at right top, rgba(192, 132, 252, 0.08), transparent 20%),
-    linear-gradient(135deg, #020617 0%, #0f172a 45%, #111827 100%);
+    radial-gradient(ellipse at 75% -15%, rgb(0 100 255 / 0.22), transparent 38rem),
+    radial-gradient(ellipse at 0% 40%, rgb(0 183 255 / 0.08), transparent 34rem),
+    linear-gradient(145deg, #030b1a 0%, #06132b 52%, #071329 100%);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
 
 * { box-sizing: border-box; }
@@ -44,13 +48,51 @@ textarea,
   touch-action: manipulation;
 }
 
+button {
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid rgb(56 189 248 / 0.8);
+  outline-offset: 2px;
+}
+
+.app-shell {
+  background:
+    radial-gradient(ellipse at 70% 0%, rgb(0 81 255 / 0.12), transparent 42rem),
+    linear-gradient(145deg, #030b1a 0%, #06132b 52%, #071329 100%);
+}
+
+.app-header,
+.app-sidebar,
+.app-form-panel {
+  border-color: var(--surface-border);
+  background: linear-gradient(145deg, rgb(10 31 62 / 0.96), rgb(5 16 36 / 0.98));
+  box-shadow: 0 24px 70px -38px rgb(0 81 255 / 0.42);
+  backdrop-filter: blur(18px);
+}
+
+:not(button)[class~="rounded-3xl"][class~="border"][class~="bg-white/10"],
+:not(button)[class~="rounded-3xl"][class~="border"][class~="bg-slate-950/60"],
+:not(button)[class~="rounded-3xl"][class~="border"][class~="bg-slate-950/65"],
+:not(button)[class~="rounded-3xl"][class~="border"][class~="bg-slate-950/50"] {
+  border-color: var(--surface-border);
+  background: linear-gradient(145deg, var(--surface-raised), var(--surface));
+  box-shadow: 0 22px 60px -38px rgb(0 81 255 / 0.38);
+  backdrop-filter: blur(16px);
+}
+
 .field {
   display: block;
   width: 100%;
-  border: 1px solid rgb(255 255 255 / 0.1);
+  border: 1px solid var(--surface-border);
   min-height: 48px;
-  border-radius: 0.75rem;
-  background: rgb(2 6 23 / 0.72);
+  border-radius: 0.875rem;
+  background: rgb(3 13 30 / 0.82);
   padding: 0.75rem 0.875rem;
   color: white;
   outline: none;
@@ -58,8 +100,52 @@ textarea,
 }
 
 .field::placeholder { color: rgb(148 163 184 / 0.58); }
-.field:hover { border-color: rgb(148 163 184 / 0.3); }
-.field:focus { border-color: rgb(34 211 238 / 0.85); background: rgb(2 6 23 / 0.9); box-shadow: 0 0 0 3px rgb(34 211 238 / 0.12); }
+.field:hover { border-color: rgb(96 165 250 / 0.35); }
+.field:focus { border-color: rgb(56 189 248 / 0.85); background: rgb(3 13 30 / 0.96); box-shadow: 0 0 0 3px rgb(56 189 248 / 0.12); }
 textarea.field { min-height: 96px; line-height: 1.5; }
 select.field { color-scheme: dark; }
 input[type="date"].field { color-scheme: dark; }
+
+input:not([type="checkbox"]):not([type="radio"]):not(.field),
+select:not(.field),
+textarea:not(.field) {
+  border-color: var(--surface-border);
+  border-radius: 0.875rem;
+  background-color: rgb(3 13 30 / 0.82);
+  color: white;
+  transition: border-color 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not(.field):focus,
+select:not(.field):focus,
+textarea:not(.field):focus {
+  border-color: rgb(56 189 248 / 0.85);
+  background-color: rgb(3 13 30 / 0.96);
+  box-shadow: 0 0 0 3px rgb(56 189 248 / 0.12);
+  outline: none;
+}
+
+input:not([type="checkbox"]):not([type="radio"])::placeholder,
+textarea::placeholder {
+  color: rgb(148 163 184 / 0.58);
+}
+
+button[class~="bg-cyan-400"] {
+  background-image: linear-gradient(115deg, var(--accent), #0b6ff0);
+  box-shadow: 0 8px 24px -12px rgb(22 133 255 / 0.8);
+}
+
+button[class~="bg-cyan-400"]:hover:not(:disabled) {
+  background-image: linear-gradient(115deg, #39a0ff, #1685ff);
+  box-shadow: 0 10px 28px -12px rgb(22 133 255 / 0.9);
+  transform: translateY(-1px);
+}
+
+button[class~="border-white/10"] {
+  border-color: rgb(96 165 250 / 0.15);
+}
+
+::selection {
+  background: rgb(22 133 255 / 0.38);
+  color: white;
+}

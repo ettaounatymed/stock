@@ -738,7 +738,7 @@ export default function Home() {
 
   if (showOwnerGate) {
     return (
-      <main className="min-h-screen bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#1f2937_100%)] text-white">
+      <main className="app-shell min-h-screen text-white">
         <section className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-4 py-10 sm:px-6 lg:px-8">
           <UserProfile
             isSupabaseConfigured={isSupabaseConfigured}
@@ -755,20 +755,22 @@ export default function Home() {
   }
 
   return (
-    <main className="min-h-screen bg-[linear-gradient(135deg,#0f172a_0%,#111827_45%,#1f2937_100%)] text-white">
-      <section className="mx-auto flex w-full max-w-10xl flex-col gap-4 px-3 py-4 sm:gap-8 sm:px-6 sm:py-8 lg:px-8">
-        <Header signOut={handleOwnerSignOut} />
+    <main className="app-shell min-h-screen text-white">
+      <section className="flex min-h-screen w-full flex-col gap-4 px-3 py-4 sm:gap-6 sm:px-6 sm:py-6 lg:px-8">
+        <div className="xl:ml-[280px]">
+          <Header signOut={handleOwnerSignOut} />
+        </div>
 
         <div className="flex items-center justify-between gap-3 sm:hidden">
           <button
             type="button"
             onClick={() => setMobileMenuOpen((prev) => !prev)}
-            className="flex items-center gap-2 rounded-2xl border border-white/10 bg-white/10 px-4 py-3 text-sm font-semibold text-white"
+            className="flex items-center gap-2 rounded-2xl border border-blue-400/20 bg-[#081831]/90 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-blue-950/20"
           >
             {mobileMenuOpen ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
             Menu
           </button>
-          <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-2 text-sm text-cyan-100">
+          <span className="rounded-full border border-blue-400/20 bg-blue-500/10 px-3 py-2 text-sm text-blue-100">
             {activeTab === "overview" ? "Dashboard" : activeTab}
           </span>
         </div>
@@ -779,12 +781,12 @@ export default function Home() {
 
    
 
-        <section className="grid gap-4 xl:grid-cols-[280px_1fr] xl:gap-6">
-          <div className="hidden sm:block">
+        <section className="grid min-w-0 gap-4 sm:grid-cols-[220px_minmax(0,1fr)] sm:gap-5 xl:grid-cols-1 xl:pl-[280px]">
+          <div className="hidden sm:block xl:fixed xl:inset-y-0 xl:left-0 xl:z-30 xl:w-[280px] xl:p-4">
             <Sidebar activeTab={activeTab} onSelectTab={setActiveTab} visibleTabs={isOwner ? undefined : viewerTabs} />
           </div>
 
-          <div className="space-y-6">
+          <div className="min-w-0 space-y-6">
             {activeTab === "overview" && (
               <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
                 <div className="flex items-center justify-between gap-3 sm:hidden">
@@ -875,20 +877,24 @@ export default function Home() {
               <article className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/20 backdrop-blur-xl sm:p-6">
                 <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                   <div>
+                    <p className="text-sm uppercase tracking-[0.35em] text-cyan-200">Products</p>
                     <h2 className="mt-2 text-xl font-semibold text-white">Search all products</h2>
                   </div>
                 </div>
 
                 <ProductFilters searchTerm={searchTerm} onSearchChange={setSearchTerm} visibleCount={filteredRecords.length} totalCount={records.length} />
 
-                <ProductList
-                  items={filteredRecords}
-                  emptyMessage="No products found."
-                  pageSize={4}
+                <div className="mt-5">
+                  <ProductList
+                    items={filteredRecords}
+                    emptyMessage="No products found."
+                    layout="stack"
+                    pageSize={4}
                     renderItem={(item) => (
-                    <ProductCard key={item.id} item={item} averageEuroRate={averageEuroRate} allocatedExpenseMAD={expenseCostByProduct[item.id] || 0} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} />
-                  )}
-                />
+                      <ProductCard key={item.id} item={item} averageEuroRate={averageEuroRate} allocatedExpenseMAD={expenseCostByProduct[item.id] || 0} canEdit={canEdit} onEdit={handleEdit} onDelete={handleDelete} />
+                    )}
+                  />
+                </div>
               </article>
             )}
 
@@ -935,7 +941,7 @@ export default function Home() {
           </div>
         </section>
 
-        <footer className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/10 px-4 py-4 text-sm text-slate-200/90 shadow-2xl shadow-black/20 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-6">
+        <footer className="flex flex-col gap-3 rounded-3xl border border-white/10 bg-white/10 px-4 py-4 text-sm text-slate-200/90 shadow-2xl shadow-black/20 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between sm:px-6 xl:ml-[280px]">
           <p>{authStatus || "Ready."}</p>
           <div className="flex items-center gap-3">
             <span className="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1">{isOwner ? "Owner mode" : "Read only"}</span>

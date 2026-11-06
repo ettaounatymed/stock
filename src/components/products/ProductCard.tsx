@@ -1,5 +1,6 @@
 "use client";
 
+import { Pencil, Trash2 } from "lucide-react";
 import type { ProductRecord } from "@/lib/stock";
 import { getProductBuyCostMAD, getProductStatus } from "@/lib/stock";
 
@@ -23,84 +24,93 @@ export function ProductCard({ item, averageEuroRate, allocatedExpenseMAD = 0, ca
     : null;
 
   return (
-    <article className="rounded-3xl border border-white/10 bg-slate-950/65 p-3 shadow-lg shadow-black/20 sm:p-4">
-      <div className="flex flex-col gap-3 border-b border-white/10 pb-3 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <p className="text-base font-semibold text-white">{item.productName}</p>
-          <p className="text-xs text-slate-300">{item.category} • {item.sourceCountry}</p>
-          {item.imei ? <p className="mt-1 text-xs text-cyan-100">IMEI: {item.imei}</p> : null}
-          <span
-            className={`mt-2 inline-flex rounded-full border px-3 py-1 text-[11px] font-semibold ${
-              status === "sold"
-                ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-100"
-                : "border-amber-400/30 bg-amber-400/10 text-amber-100"
-            }`}
-          >
+    <article className="group relative overflow-hidden rounded-3xl border border-blue-300/10 bg-gradient-to-br from-[#0b1d3b] to-[#061329] p-4 shadow-lg shadow-black/20 transition duration-200 hover:-translate-y-0.5 hover:border-blue-400/30 hover:shadow-[0_20px_45px_-30px_rgba(22,133,255,0.65)] sm:p-5">
+      <div aria-hidden="true" className={`pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full blur-3xl ${status === "sold" ? "bg-emerald-500/[0.07]" : "bg-blue-500/[0.09]"}`} />
+      <div className="relative flex flex-col gap-4 border-b border-blue-200/[0.08] pb-4 sm:flex-row sm:items-start sm:justify-between">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className={`mt-0.5 grid h-10 w-10 shrink-0 place-items-center rounded-xl border ${
+            status === "sold" ? "border-emerald-400/15 bg-emerald-400/[0.08] text-emerald-300" : "border-blue-400/15 bg-blue-500/[0.1] text-blue-300"
+          }`}>
+            <span className="text-sm font-bold">{item.productName.trim().slice(0, 1).toUpperCase() || "P"}</span>
+          </span>
+          <div className="min-w-0">
+            <h3 className="break-words text-base font-semibold tracking-tight text-white sm:text-lg">{item.productName || "Unnamed product"}</h3>
+            <p className="mt-1 text-xs text-slate-400">{item.category} <span className="px-1 text-slate-600">/</span> {item.sourceCountry}</p>
+            {item.imei ? <p className="mt-2 break-all font-mono text-[11px] text-blue-200/80">IMEI · {item.imei}</p> : null}
+          </div>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0 sm:justify-end">
+          <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-semibold ${
+            status === "sold"
+              ? "border-emerald-400/20 bg-emerald-400/[0.08] text-emerald-200"
+              : "border-blue-400/20 bg-blue-500/[0.08] text-blue-200"
+          }`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${status === "sold" ? "bg-emerald-400" : "bg-blue-400"}`} />
             {status === "sold" ? "Sold" : "In stock"}
           </span>
-        </div>
-        <div className="flex flex-wrap gap-2 sm:justify-end">
           {canEdit ? (
             <>
               <button
                 type="button"
                 onClick={() => onEdit(item)}
-                className="rounded-full border border-cyan-400/30 bg-cyan-400/10 px-3 py-1 text-xs font-medium text-cyan-100 transition hover:bg-cyan-400/20"
+                aria-label={`Edit ${item.productName || "product"}`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-blue-400/20 bg-blue-500/[0.07] px-3 py-2 text-xs font-medium text-blue-100 hover:border-blue-300/40 hover:bg-blue-500/15"
               >
-                Edit
+                <Pencil className="h-3.5 w-3.5" aria-hidden="true" /> Edit
               </button>
               <button
                 type="button"
                 onClick={() => onDelete(item.id)}
-                className="rounded-full border border-rose-400/30 bg-rose-400/10 px-3 py-1 text-xs font-medium text-rose-100 transition hover:bg-rose-400/20"
+                aria-label={`Delete ${item.productName || "product"}`}
+                className="inline-flex items-center gap-1.5 rounded-xl border border-rose-400/15 bg-rose-400/[0.05] px-3 py-2 text-xs font-medium text-rose-200/90 hover:border-rose-400/35 hover:bg-rose-400/10"
               >
-                Delete
+                <Trash2 className="h-3.5 w-3.5" aria-hidden="true" /> Delete
               </button>
             </>
           ) : (
-            <span className="rounded-full border border-cyan-400/20 bg-cyan-400/10 px-3 py-1 text-xs font-semibold text-cyan-100">Read only</span>
+            <span className="rounded-full border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-[11px] font-medium text-slate-400">Read only</span>
           )}
         </div>
       </div>
 
-      <dl className="mt-3 grid gap-3 text-xs text-slate-100 sm:grid-cols-2">
-        <div>
-          <dt className="text-slate-400">Bought</dt>
-          <dd>{item.purchaseDate || "—"}</dd>
+      <dl className="relative mt-4 grid gap-2.5 text-xs sm:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Bought</dt>
+          <dd className="mt-1.5 font-medium text-slate-200">{item.purchaseDate || "—"}</dd>
         </div>
-        <div>
-          <dt className="text-slate-400">Sold</dt>
-          <dd>{item.saleDate || "—"}</dd>
+        <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Sold</dt>
+          <dd className="mt-1.5 font-medium text-slate-200">{item.saleDate || "—"}</dd>
         </div>
-        <div>
-          <dt className="text-slate-400">Paid</dt>
-          <dd>{item.buyCurrency === "MAD" ? `${Number(item.buyPriceMAD || 0).toFixed(2)} MAD` : `${Number(item.buyPriceEUR || 0).toFixed(2)} EUR`}</dd>
+        <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Paid</dt>
+          <dd className="mt-1.5 font-medium text-slate-200">{item.buyCurrency === "MAD" ? `${Number(item.buyPriceMAD || 0).toFixed(2)} MAD` : `${Number(item.buyPriceEUR || 0).toFixed(2)} EUR`}</dd>
         </div>
-        <div>
-          <dt className="text-slate-400">Buy cost</dt>
-          <dd>{realCostMAD.toFixed(2)} MAD</dd>
+        <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Buy cost</dt>
+          <dd className="mt-1.5 font-medium text-slate-200">{realCostMAD.toFixed(2)} MAD</dd>
         </div>
-        {item.buyCurrency !== "MAD" ? <div>
-          <dt className="text-slate-400">EUR rate at purchase</dt>
-          <dd>{purchaseTimeEuroRate > 0 ? `${purchaseTimeEuroRate.toFixed(2)} MAD / EUR` : "Not recorded"}</dd>
+        {item.buyCurrency !== "MAD" ? <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">EUR rate at purchase</dt>
+          <dd className="mt-1.5 font-medium text-slate-200">{purchaseTimeEuroRate > 0 ? `${purchaseTimeEuroRate.toFixed(2)} MAD / EUR` : "Not recorded"}</dd>
         </div> : null}
-        <div>
-          <dt className="text-slate-400">Sell price</dt>
-          <dd>{Number(item.salePriceMAD || 0).toFixed(2)} MAD</dd>
+        <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Sell price</dt>
+          <dd className="mt-1.5 font-medium text-slate-200">{Number(item.salePriceMAD || 0).toFixed(2)} MAD</dd>
         </div>
-        <div>
-          <dt className="text-slate-400">Profit</dt>
-          <dd className={profitMAD === null ? "text-slate-400" : profitMAD >= 0 ? "text-emerald-300" : "text-rose-300"}>
+        <div className={`rounded-xl border p-3 ${profitMAD === null ? "border-white/[0.04] bg-slate-950/20" : profitMAD >= 0 ? "border-emerald-400/10 bg-emerald-400/[0.035]" : "border-rose-400/10 bg-rose-400/[0.035]"}`}>
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Profit</dt>
+          <dd className={`mt-1.5 font-semibold ${profitMAD === null ? "text-slate-400" : profitMAD >= 0 ? "text-emerald-300" : "text-rose-300"}`}>
             {profitMAD === null ? "Not sold yet" : `${profitMAD.toFixed(2)} MAD`}
           </dd>
         </div>
-        <div>
-          <dt className="text-slate-400">Additional costs</dt>
-          <dd>{allocatedExpenseMAD.toFixed(2)} MAD</dd>
+        <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Additional costs</dt>
+          <dd className="mt-1.5 font-medium text-slate-200">{allocatedExpenseMAD.toFixed(2)} MAD</dd>
         </div>
-        <div>
-          <dt className="text-slate-400">Notes</dt>
-          <dd>{item.notes || "—"}</dd>
+        <div className="rounded-xl border border-white/[0.04] bg-slate-950/20 p-3 sm:col-span-2 xl:col-span-1">
+          <dt className="text-[10px] font-medium uppercase tracking-[0.16em] text-slate-500">Notes</dt>
+          <dd className="mt-1.5 break-words leading-5 text-slate-300">{item.notes || "—"}</dd>
         </div>
       </dl>
     </article>

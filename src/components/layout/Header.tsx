@@ -1,53 +1,58 @@
 "use client";
-import { useEffect, useState } from "react";
 import Image from "next/image";
 import logo from "@/images/logo.png";
+
+const dateFormatter = new Intl.DateTimeFormat("en-US", {
+  weekday: "long",
+  year: "numeric",
+  month: "long",
+  day: "numeric",
+  timeZone: "UTC",
+});
+
 type HeaderProps = {
   signOut: () => void;
 };
 export function Header({ signOut }: HeaderProps) {
-  const [currentDate, setCurrentDate] = useState("");
-
-  // Safely handle the date on the client side to avoid hydration mismatch
-  useEffect(() => {
-    const options: Intl.DateTimeFormatOptions = { 
-      weekday: 'long', 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    };
-    setCurrentDate(new Date().toLocaleDateString(undefined, options));
-  }, []);
-  
+  const currentDate = dateFormatter.format(new Date());
 
   return (
-    <header className="rounded-3xl border border-white/10 bg-white/10 p-4 shadow-2xl shadow-black/30 backdrop-blur-xl sm:p-6">
+    <header className="app-header rounded-3xl border p-4 sm:px-6 sm:py-4">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center justify-between gap-3 sm:justify-start">
-          <Image 
-            src={logo} 
-            alt="M & Y Stock Tracker" 
-            width={90} 
-            height={75} 
-            className="h-14 w-14 rounded-full sm:h-[75px] sm:w-[90px]" 
-          />
+          <div className="flex items-center gap-3">
+            <Image
+              src={logo}
+              alt="M & Y Stock Tracker"
+              width={64}
+              height={64}
+              className="h-12 w-12 rounded-2xl border border-blue-300/15 object-cover shadow-lg shadow-blue-950/30 sm:h-14 sm:w-14"
+            />
+            <div>
+              <p className="text-sm font-semibold tracking-wide text-white sm:text-base">M &amp; Y Stock</p>
+              <p className="mt-0.5 text-xs text-slate-400">Inventory &amp; sales dashboard</p>
+            </div>
+          </div>
           <button
             type="button"
             onClick={signOut}
-            className="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1 text-sm transition hover:border-cyan-400/40 hover:bg-cyan-400/10 sm:hidden"
+            className="rounded-xl border border-blue-300/15 bg-blue-500/[0.07] px-3 py-2 text-sm text-blue-100 transition hover:border-blue-300/30 hover:bg-blue-500/15 sm:hidden"
           >
             Sign out
           </button>
         </div>
 
-        <p className="text-center text-sm font-medium tracking-wide text-cyan-200 sm:text-left">
-          {currentDate || "Loading date..."}
-        </p>
+        <div className="flex items-center justify-between gap-3 sm:justify-end">
+          <div className="text-left sm:text-right">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-blue-300">Today</p>
+            <p className="mt-1 text-sm font-medium text-slate-200">{currentDate}</p>
+          </div>
 
-        <div className="hidden items-center gap-3 sm:flex">
-          <button type="button" onClick={signOut} className="rounded-full border border-white/10 bg-slate-950/50 px-3 py-1 transition hover:border-cyan-400/40 hover:bg-cyan-400/10">
-            Sign out
-          </button>
+          <div className="hidden items-center gap-3 sm:flex">
+            <button type="button" onClick={signOut} className="rounded-xl border border-blue-300/15 bg-blue-500/[0.07] px-4 py-2 text-sm font-medium text-blue-100 transition hover:border-blue-300/30 hover:bg-blue-500/15">
+              Sign out
+            </button>
+          </div>
         </div>
       </div>
     </header>
